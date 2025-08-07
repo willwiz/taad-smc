@@ -1,6 +1,18 @@
+import enum
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal, Required, TypedDict
+
+
+class CurveSegment(enum.StrEnum):
+    STRETCH = "STRETCH"
+    HOLD = "HOLD"
+    RECOVER = "RECOVER"
+
+
+class CurvePoint(enum.Enum):
+    PEAK = enum.auto()
+    VALLEY = enum.auto()
 
 
 class Arguments(TypedDict):

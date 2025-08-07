@@ -1,9 +1,11 @@
 from collections.abc import Mapping, Sequence
+from pprint import pformat
 
 import numpy as np
+from pytools.logging.trait import NULL_LOG, ILogger
 
 from .struct import TAADCurve
-from .trait import Protocol, TestProtocol
+from .trait import CurveSegment, Protocol, TestProtocol
 
 
 def create_sawtooth_curve(
@@ -24,7 +26,7 @@ def create_sawtooth_curve(
         order=order,
         time=time,
         disp=disp,
-        curve=["Stretch", "Recover"],
+        curve=[CurveSegment.STRETCH, CurveSegment.RECOVER],
     )
 
 
@@ -50,7 +52,7 @@ def create_trapazoid_curve(
         order=order,
         time=time,
         disp=disp,
-        curve=["Stretch", "Hold", "Recover"],
+        curve=[CurveSegment.STRETCH, CurveSegment.HOLD, CurveSegment.RECOVER],
     )
 
 
@@ -96,10 +98,14 @@ def aligned_curve_indices[F: np.floating, I: np.integer](
 
 def generate_tags[F: np.floating, I: np.integer](
     curves: Mapping[str, Sequence[TAADCurve[F, I]]],
+    *,
+    log: ILogger = NULL_LOG,
 ) -> Sequence[tuple[str, int, str]]:
     """Generate tags for each curve in the protocol."""
-    return (
+    tags = (
         [("Start", 0, "Hold")]
         + [(k, c.nth, m) for k, v in curves.items() for c in v for m in c.curve]
         + [("End", 0, "Hold")]
     )
+    log.debug("Curve tags:", pformat(tags, indent=2, sort_dicts=False))
+    return tags

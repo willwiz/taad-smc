@@ -1,30 +1,31 @@
 import itertools
 from collections.abc import Mapping, Sequence
 from pprint import pformat
-from typing import Literal
 
 import numpy as np
 from arraystubs import Arr1
 from pytools.logging.trait import NULL_LOG, ILogger
 from scipy.ndimage import gaussian_filter1d
 
+from taad_smc.segmentation.trait import CurvePoint, CurveSegment
+
 from .struct import Segmentation, TAADCurve
 
 
 def _is_peak(
-    left: Literal["Stretch", "Hold", "Recover"],
-    right: Literal["Stretch", "Hold", "Recover"],
-) -> Literal["PEAK", "VALLEY"]:
+    left: CurveSegment,
+    right: CurveSegment,
+) -> CurvePoint:
     match (left, right):
-        case _, "Stretch":
-            return "VALLEY"
-        case _, "Recover":
-            return "PEAK"
-        case "Stretch", "Hold":
-            return "PEAK"
-        case "Recover", "Hold":
-            return "VALLEY"
-        case "Hold", "Hold":
+        case _, CurveSegment.STRETCH:
+            return CurvePoint.PEAK
+        case _, CurveSegment.RECOVER:
+            return CurvePoint.VALLEY
+        case CurveSegment.STRETCH, CurveSegment.HOLD:
+            return CurvePoint.VALLEY
+        case CurveSegment.RECOVER, CurveSegment.HOLD:
+            return CurvePoint.PEAK
+        case CurveSegment.HOLD, CurveSegment.HOLD:
             msg = "Consecutive 'Hold' segments found."
             raise ValueError(msg)
 
@@ -41,16 +42,26 @@ def get_index_list[F: np.floating, I: np.integer](
             dtype=curves[next(iter(curves))][0].idx.dtype,
         ),
     )
-    curve_kinds: list[Literal["Stretch", "Hold", "Recover"]] = [
-        "Hold",
+    curve_kinds = [
+        CurveSegment.HOLD,
         *[v for curve in curves.values() for c in curve for v in c.curve],
-        "Hold",
+        CurveSegment.HOLD,
     ]
-    kinds = [_is_peak(left, right) for left, right in itertools.pairwise(curve_kinds)]
+    kinds = (
+        [CurvePoint.VALLEY]
+        + [_is_peak(left, right) for left, right in itertools.pairwise(curve_kinds)]
+        + [CurvePoint.VALLEY]
+    )
     log.info("Last index:", index_as_intp[-1])
-    log.debug("Main index:", pformat(index_as_intp, indent=2, sort_dicts=False), "kinds:", kinds)
+    log.debug(
+        f"Main index (n = {len(index_as_intp)}):",
+        pformat(index_as_intp, indent=2, sort_dicts=False),
+        f"kinds (n = {len(kinds)}):",
+        pformat(kinds, indent=2, sort_dicts=False),
+    )
     return Segmentation(
         idx=index_as_intp,
+        kind=kinds,
     )
 
 

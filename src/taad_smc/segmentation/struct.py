@@ -1,9 +1,10 @@
 import dataclasses as dc
 from collections.abc import Sequence
-from typing import Literal
 
 import numpy as np
 from arraystubs import Arr1
+
+from taad_smc.segmentation.trait import CurvePoint, CurveSegment
 
 
 @dc.dataclass(slots=True)
@@ -15,7 +16,7 @@ class TAADCurve[F: np.floating, I: np.integer]:
     order: Arr1[I]
     time: Arr1[F]
     disp: Arr1[F]
-    curve: Sequence[Literal["Stretch", "Hold", "Recover"]]
+    curve: Sequence[CurveSegment]
 
 
 @dc.dataclass(slots=True)
@@ -30,10 +31,19 @@ class TAADProtocol[F: np.floating, I: np.integer]:
 @dc.dataclass(slots=True)
 class Split:
     idx: int
-    kind: Literal["PEAK", "VALLEY"]
+    kind: CurvePoint
 
 
 @dc.dataclass(slots=True)
 class Segmentation[I: np.integer]:
     idx: Arr1[I]
-    # kind: Sequence[Literal["PEAK", "VALLEY"]]
+    kind: Sequence[CurvePoint]
+
+
+@dc.dataclass(slots=True)
+class DataSeries[F: np.floating]:
+    x: Arr1[F]
+    y: Arr1[F]
+    z: Arr1[F]
+    dz: Arr1[F]
+    ddz: Arr1[F]

@@ -1,0 +1,16 @@
+[project]
+name = "taad-smc"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = ["arraystubs", "pytools"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+arraystubs = { git = "https://github.com/willwiz/arraystubs.git" }
+pytools = { git = "https://github.com/willwiz/pytools.git" }

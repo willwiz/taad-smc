@@ -1,7 +1,7 @@
 import enum
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, Required, TypedDict
+from typing import Literal, TypedDict
 
 
 class CurveSegment(enum.StrEnum):
@@ -22,8 +22,8 @@ class Arguments(TypedDict):
 
 
 class Protocol(TypedDict, total=False):
-    max_strain: Required[float]
-    loading_rate: Required[float]
+    max_strain: float
+    loading_rate: float
     duration: float
 
 
@@ -31,10 +31,16 @@ class TestProtocol(TypedDict):
     """TypedDict for test protocol."""
 
     repeat: int
-    type: Literal["Sawtooth", "Trapazoid"]
+    type: Literal["Sawtooth", "Trapazoid", "Flat", "Slack"]
     args: Protocol
 
 
 class PeakKwargs(TypedDict, total=False):
     filter_width: int
     prominence: float
+
+
+class FindPeakKwargs(TypedDict, total=False):
+    prominence: float
+    width: float
+    wlen: int

@@ -37,18 +37,19 @@ def get_index_list[F: np.floating, I: np.integer](
     length: int,
     *,
     log: ILogger = ...,
-) -> Segmentation[I]: ...
+) -> Segmentation[I, F]: ...
 def filtered_derivatives[F: np.floating](
     time: Arr1[F],
     disp: Arr1[F],
     *,
     smoothing_window: int = 50,
+    repeat: int = 5,
 ) -> DataSeries[F]: ...
 def segment_duration[F: np.floating, I: np.integer](
     data: DataSeries[F],
     curves: Sequence[TAADCurve[F, I]],
-    seg: Segmentation[I],
+    seg: Segmentation[I, F],
     *,
     fout: Path,
     log: ILogger = ...,
-) -> Segmentation[I]: ...
+) -> Segmentation[I, F]: ...

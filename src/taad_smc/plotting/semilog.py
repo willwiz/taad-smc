@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Unpack
 
 import numpy as np
-from pytools.plotting.api import create_figure, figstyle, update_figure_setting
+from pytools.plotting.api import create_figure, figstyle, legend_kwargs, update_figure_setting
 from pytools.plotting.trait import PlotKwargs
 
 from taad_smc.plotting.struct import PlotData
@@ -22,7 +22,7 @@ def semilogx[T: np.number](
         ax.semilogx(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")
     if curve_labels is not None:
-        ax.legend(curve_labels)
+        fig.legend(curve_labels, **legend_kwargs(**kwargs))
     fig.savefig(fout)
 
 
@@ -38,5 +38,5 @@ def plotxy[T: np.number](
         ax.plot(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")
     if curve_labels is not None:
-        ax.legend(curve_labels)
+        fig.legend(curve_labels, **legend_kwargs(**kwargs))
     fig.savefig(fout)

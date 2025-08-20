@@ -15,10 +15,16 @@ def create_sawtooth_curve(
     nth: int = 0,
 ) -> TAADCurve[np.float64, np.intp]:
     """Create a sawtooth curve for testing."""
-    half_period = prot["max_strain"] / prot["loading_rate"]
+    max_strain = prot.get("max_strain")
+    loading_rate = prot.get("loading_rate")
+    if max_strain is None or loading_rate is None:
+        msg = "Max strain and loading rate must be provided for trapazoid curve."
+        raise ValueError(msg)
+    half_period = max_strain / loading_rate
     order = np.array([0, 1, 2], dtype=np.intp)
+    slope = np.array([loading_rate, -loading_rate], dtype=np.float64)
     time = (order * half_period).astype(np.float64)
-    disp = prot["max_strain"] * np.array([0, 1, 0], dtype=np.float64)
+    disp = max_strain * np.array([0, 1, 0], dtype=np.float64)
     idx = np.rint(time * sample_rate).astype(np.intp)
     return TAADCurve(
         nth=nth,
@@ -27,6 +33,7 @@ def create_sawtooth_curve(
         time=time,
         disp=disp,
         curve=[CurveSegment.STRETCH, CurveSegment.RECOVER],
+        slope=slope,
     )
 
 
@@ -38,13 +45,32 @@ def create_trapazoid_curve(
 ) -> TAADCurve[np.float64, np.intp]:
     """Create a sawtooth curve for testing."""
     duration = prot.get("duration")
+    max_strain = prot.get("max_strain")
+    loading_rate = prot.get("loading_rate")
     if duration is None:
         msg = "Duration must be provided for trapazoid curve."
         raise ValueError(msg)
-    half_period = prot["max_strain"] / prot["loading_rate"]
+    if max_strain is None or loading_rate is None:
+        msg = "Max strain and loading rate must be provided for trapazoid curve."
+        raise ValueError(msg)
+    half_period = abs(max_strain / loading_rate)
     order = np.array([0, 1, 2, 3], dtype=np.intp)
-    time = np.add.accumulate(np.array([0, half_period, duration, half_period], dtype=np.float64))
-    disp = prot["max_strain"] * np.array([0, 1, 1, 0], dtype=np.float64)
+    slope = np.array([loading_rate, 0, -0.1 * max_strain], dtype=np.float64)
+    time = np.add.accumulate(np.array([0, half_period, duration, 2], dtype=np.float64))
+    disp = max_strain * np.array([0, 1, 1, 0], dtype=np.float64)
+    curve = (
+        [
+            CurveSegment.STRETCH,
+            CurveSegment.HOLD,
+            CurveSegment.RECOVER,
+        ]
+        if max_strain > 0
+        else [
+            CurveSegment.RECOVER,
+            CurveSegment.HOLD,
+            CurveSegment.STRETCH,
+        ]
+    )
     idx = np.rint(time * sample_rate).astype(np.intp)
     return TAADCurve(
         nth=nth,
@@ -52,7 +78,82 @@ def create_trapazoid_curve(
         order=order,
         time=time,
         disp=disp,
-        curve=[CurveSegment.STRETCH, CurveSegment.HOLD, CurveSegment.RECOVER],
+        curve=curve,
+        slope=slope,
+    )
+
+
+def create_slack_curve(
+    prot: Protocol,
+    sample_rate: int,
+    *,
+    nth: int = 0,
+) -> TAADCurve[np.float64, np.intp]:
+    """Create a sawtooth curve for testing."""
+    duration = prot.get("duration")
+    max_strain = prot.get("max_strain")
+    loading_rate = prot.get("loading_rate")
+    if duration is None:
+        msg = "Duration must be provided for trapazoid curve."
+        raise ValueError(msg)
+    if max_strain is None or loading_rate is None:
+        msg = "Max strain and loading rate must be provided for trapazoid curve."
+        raise ValueError(msg)
+    half_period = abs(max_strain / loading_rate)
+    order = np.array([0, 1, 2, 3], dtype=np.intp)
+    slope = np.array([loading_rate, 0, -loading_rate], dtype=np.float64)
+    time = np.add.accumulate(np.array([0, half_period, duration, half_period], dtype=np.float64))
+    disp = max_strain * np.array([0, 1, 1, 0], dtype=np.float64)
+    curve = (
+        [
+            CurveSegment.STRETCH,
+            CurveSegment.HOLD,
+            CurveSegment.RECOVER,
+        ]
+        if max_strain > 0
+        else [
+            CurveSegment.RECOVER,
+            CurveSegment.HOLD,
+            CurveSegment.STRETCH,
+        ]
+    )
+    idx = np.rint(time * sample_rate).astype(np.intp)
+    return TAADCurve(
+        nth=nth,
+        idx=idx,
+        order=order,
+        time=time,
+        disp=disp,
+        curve=curve,
+        slope=slope,
+    )
+
+
+def create_flat_curve(
+    prot: Protocol,
+    sample_rate: int,
+    *,
+    nth: int = 0,
+) -> TAADCurve[np.float64, np.intp]:
+    """Create a flat curve for testing."""
+    duration = prot.get("duration")
+    if duration is None:
+        msg = "Duration must be provided for flat curve."
+        raise ValueError(msg)
+    order = np.array([0, 1], dtype=np.intp)
+    slope = np.array([0], dtype=np.intp)
+    time = np.add.accumulate(np.array([0, duration], dtype=np.float64))
+    disp = np.array([0, 0], dtype=np.float64)
+    curve = [CurveSegment.HOLD]
+    idx = np.rint(time * sample_rate).astype(np.intp)
+    return TAADCurve(
+        nth=nth,
+        idx=idx,
+        order=order,
+        time=time,
+        disp=disp,
+        curve=curve,
+        slope=slope,
     )
 
 
@@ -70,6 +171,16 @@ def create_curve(
         case "Trapazoid":
             return [
                 create_trapazoid_curve(test["args"], sample_rate=sample_rate, nth=i)
+                for i in range(test["repeat"])
+            ]
+        case "Flat":
+            return [
+                create_flat_curve(test["args"], sample_rate=sample_rate, nth=i)
+                for i in range(test["repeat"])
+            ]
+        case "Slack":
+            return [
+                create_slack_curve(test["args"], sample_rate=sample_rate, nth=i)
                 for i in range(test["repeat"])
             ]
 

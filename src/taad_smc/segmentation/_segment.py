@@ -19,24 +19,37 @@ def filtered_derivatives[F: np.floating](
     data: Arr1[F],
     *,
     smoothing_window: float,
+    repeat: int = 5,
 ) -> DataSeries[F]:
-    x = gaussian_filter1d(data, smoothing_window)
-    for _ in range(5):
+    # sos = butter(15, 100, "lowpass", fs=5000, output="sos")
+    x = data.copy()
+    # x = sosfiltfilt(sos, x).astype(data.dtype)
+    x = gaussian_filter1d(x, smoothing_window)
+    for _ in range(repeat):
         x = gaussian_filter1d(x, smoothing_window)
-    dx = np.gradient(x)
-    ddx = np.gradient(dx)
+    dx: Arr1[F] = np.gradient(x) * 5000
+    # dx = sosfiltfilt(sos, dx).astype(data.dtype)
+    # for _ in range(repeat):
+    #     dx = gaussian_filter1d(dx, 3)
+    ddx: Arr1[F] = np.gradient(dx)
+    # ddx = sosfiltfilt(sos, ddx).astype(data.dtype)
+    for _ in range(repeat):
+        ddx = gaussian_filter1d(ddx, 10)
+    ddx = ddx / ddx.max()
+    # dx = sosfilt(sos, dx).astype(data.dtype)
+    # ddx = sosfilt(sos, ddx).astype(data.dtype)
     return DataSeries(x=time, y=data, z=x, dz=dx, ddz=ddx)
 
 
 def find_indexes[F: np.floating, I: np.integer](
     data: Arr1[F],
     nodes: Arr1[I],
-    seg: Segmentation[I],
+    seg: Segmentation[I, F],
     *,
     log: ILogger = NULL_LOG,
 ) -> Sequence[Split]:
     i_start = (seg.idx[nodes.min()] + seg.idx[nodes.min() - 1]) // 2
-    i_end = seg.idx[nodes.max() + 1]
+    i_end = seg.idx[-1]
     log.debug(
         "Finding indexes for nodes:",
         pformat(nodes, indent=2, sort_dicts=False),
@@ -44,24 +57,26 @@ def find_indexes[F: np.floating, I: np.integer](
         pformat(seg.idx[nodes], indent=2, sort_dicts=False),
         f"from {i_start} to {i_end}.",
     )
+    rates = np.absolute(seg.rate[nodes]).min()
     relative_data = np.zeros_like(data)
-    relative_data[i_start:i_end] = data[i_start:i_end] / data[seg.idx[nodes[0] : nodes[-2]]].max()
-    peaks, _ = find_peaks(np.maximum(relative_data, 0), prominence=0.3, width=50)
-    valleys, _ = find_peaks(np.maximum(-relative_data, 0), prominence=0.3, width=50)
+    relative_data[i_start:] = data[i_start:] / rates
+    print("max relative data is :", relative_data[i_start:i_end].max())
+    peaks, _ = find_peaks(np.maximum(relative_data, 0), prominence=0.2, height=0.1)
+    valleys, _ = find_peaks(np.maximum(-relative_data, 0), prominence=0.2, height=0.1)
     splits = [Split(int(idx), CurvePoint.PEAK) for idx in peaks] + [
         Split(int(idx), CurvePoint.VALLEY) for idx in valleys
     ]
     splits = sorted(splits, key=lambda x: x.idx)
-    return [s for s in splits if i_start < s.idx <= i_end]
+    return [s for s in splits if i_start < s.idx]
 
 
-def validate_curve_indices[I: np.integer](
-    seg: Segmentation[I],
+def validate_curve_indices[I: np.integer, F: np.floating](
+    seg: Segmentation[I, F],
     nodes: Arr1[I],
     splits: Sequence[Split],
     *,
     log: ILogger = NULL_LOG,
-) -> Segmentation[I]:
+) -> Segmentation[I, F]:
     if len(splits) < len(nodes):
         msg = f"Fewer splits ({len(splits)}) than expected ({len(nodes)})."
         log.warn(msg)
@@ -92,17 +107,17 @@ def validate_curve_indices[I: np.integer](
     )
     remainder = seg.idx[nodes.max() + 1 :] - seg.idx[nodes.max()]
     updated_indices[nodes.max() + 1 :] = remainder + updated_indices[nodes.max()]
-    return Segmentation(idx=updated_indices, kind=seg.kind)
+    return Segmentation(idx=updated_indices, kind=seg.kind, rate=seg.rate)
 
 
 def segment_duration[F: np.floating, I: np.integer](
     data: DataSeries[F],
     curves: Sequence[TAADCurve[F, I]],
-    seg: Segmentation[I],
+    seg: Segmentation[I, F],
     *,
     fout: Path,
     log: ILogger = NULL_LOG,
-) -> Segmentation[I]:
+) -> Segmentation[I, F]:
     nodes = np.unique([i for c in curves for i in c.order])
     splits = find_indexes(data.ddz, nodes, seg, log=log)
     log.debug(
@@ -116,4 +131,6 @@ def segment_duration[F: np.floating, I: np.integer](
         ),
     )
     plot_transition(data, nodes, seg, splits, fout=fout)
-    return validate_curve_indices(seg, nodes, splits, log=log)
+    seg = validate_curve_indices(seg, nodes, splits, log=log)
+    seg.idx[-1] = len(data.x)
+    return seg

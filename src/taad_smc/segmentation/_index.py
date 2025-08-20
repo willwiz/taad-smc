@@ -35,7 +35,7 @@ def get_index_list[F: np.floating, I: np.integer](
     length: int,
     *,
     log: ILogger = NULL_LOG,
-) -> Segmentation[I]:
+) -> Segmentation[I, np.float64]:
     index_as_intp = np.unique(
         np.array(
             [0] + [v for curve in curves.values() for c in curve for v in c.idx] + [length],
@@ -47,6 +47,22 @@ def get_index_list[F: np.floating, I: np.integer](
         *[v for curve in curves.values() for c in curve for v in c.curve],
         CurveSegment.HOLD,
     ]
+    rates = np.array(
+        [
+            0,
+            *[v for curve in curves.values() for c in curve for v in c.slope],
+            0,
+        ],
+    )
+    rates = np.array(
+        [
+            0,
+            *[5000 * (b - a) for a, b in itertools.pairwise(rates)],
+            0,
+        ],
+        dtype=np.float64,
+    )
+    rates = rates / rates.max()
     kinds = (
         [CurvePoint.VALLEY]
         + [_is_peak(left, right) for left, right in itertools.pairwise(curve_kinds)]
@@ -62,6 +78,7 @@ def get_index_list[F: np.floating, I: np.integer](
     return Segmentation(
         idx=index_as_intp,
         kind=kinds,
+        rate=rates,
     )
 
 
@@ -72,12 +89,11 @@ def find_first_index[F: np.floating](
     log: ILogger = NULL_LOG,
 ) -> int:
     """Find the first index of a non-zero element in a 1D array."""
-    filtered = gaussian_filter1d(arr, sigma=100)
+    filtered = arr - arr[0:100].mean()
     i = 0
     for i in range(len(filtered)):
         if filtered[i] > tol:
             break
-
     log.info(f"First index: {i}")
     return i
 

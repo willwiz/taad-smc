@@ -16,6 +16,7 @@ class TAADCurve[F: np.floating, I: np.integer]:
     order: Arr1[I]
     time: Arr1[F]
     disp: Arr1[F]
+    slope: Arr1[F]
     curve: Sequence[CurveSegment]
 
 
@@ -35,9 +36,10 @@ class Split:
 
 
 @dc.dataclass(slots=True)
-class Segmentation[I: np.integer]:
+class Segmentation[I: np.integer, F: np.floating]:
     idx: Arr1[I]
     kind: Sequence[CurvePoint]
+    rate: Arr1[F]
 
 
 @dc.dataclass(slots=True)

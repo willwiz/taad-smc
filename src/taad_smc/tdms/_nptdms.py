@@ -1,3 +1,9 @@
+# Copyright (c) 2023 Will Zhang
+# Licensed under the MIT License
+# /// script
+# requires-python = ">=3.13"
+# dependency = []
+# ///
 # pyright: reportUnknownVariableType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportArgumentType=none, reportUnknownArgumentType=false, reportMissingTypeStubs=false
 __all__ = ["import_tdms_muscle_typeless"]
 from pathlib import Path

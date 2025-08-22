@@ -53,3 +53,7 @@ def segment_duration[F: np.floating, I: np.integer](
     fout: Path,
     log: ILogger = ...,
 ) -> Segmentation[I, F]: ...
+def plot_filtered[F: np.floating](
+    data: DataSeries[F],
+    fout: Path,
+) -> None: ...

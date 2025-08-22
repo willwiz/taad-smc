@@ -1,3 +1,4 @@
+# Copyright (c) 2025 Will Zhang
 # pyright: reportUnknownMemberType=false
 from collections.abc import Sequence
 from pathlib import Path

@@ -7,6 +7,7 @@ __all__ = [
     "get_index_list",
     "import_test_protocol",
     "parse_cli_args",
+    "plot_filtered",
     "segment_duration",
 ]
 from collections.abc import Mapping, Sequence
@@ -19,6 +20,7 @@ from pytools.logging.trait import NULL_LOG, ILogger
 from ._index import find_first_index, find_last_index, get_index_list
 from ._io import import_test_protocol
 from ._parser import parser
+from ._plotting import plot_filtered
 from ._protocol import aligned_curve_indices, create_curve, generate_tags
 from ._segment import filtered_derivatives, segment_duration
 from .struct import TAADCurve

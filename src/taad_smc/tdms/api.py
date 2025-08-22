@@ -1,3 +1,4 @@
+# Copyright (c) 2025 Will Zhang
 import dataclasses as dc
 import json
 from pathlib import Path
@@ -11,7 +12,17 @@ from .struct import TDMSData, TDMSMetaData
 
 
 def import_tdms_raw(file: Path) -> TDMSData[np.float64]:
-    """Import TDMS muscle data from a file.
+    """Return struct containing the tdms data as numpy arrays.
+
+    Parameters
+    ----------
+    file : Path
+        Path to the TDMS file to read.
+
+    Returns
+    -------
+    TDMSData[np.float64]
+        Struct containing the TDMS data as numpy arrays.
 
     Note:
     This function is a wrapper around `import_tdms_muscle_typeless` and is

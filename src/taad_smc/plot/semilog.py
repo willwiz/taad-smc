@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, figstyle, legend_kwargs, update_figure_setting
 from pytools.plotting.trait import PlotKwargs
 
-from taad_smc.plotting.struct import PlotData
+from taad_smc.plot.struct import PlotData
 
 
 def semilogx[T: np.number](

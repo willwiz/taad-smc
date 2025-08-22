@@ -1,4 +1,3 @@
-__all__ = ["create_curves"]
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
@@ -7,9 +6,8 @@ from arraystubs import Arr1
 from pytools.logging.trait import ILogger
 
 from .struct import DataSeries, Segmentation, TAADCurve
-from .trait import Arguments, TestProtocol
+from .trait import TestProtocol
 
-def parse_cli_args(args: list[str] | None = None) -> Arguments: ...
 def create_curves(
     protocol: Mapping[str, TestProtocol],
     start_idx: int = 0,

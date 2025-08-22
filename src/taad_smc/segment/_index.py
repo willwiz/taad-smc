@@ -7,7 +7,7 @@ from arraystubs import Arr1
 from pytools.logging.trait import NULL_LOG, ILogger
 from scipy.ndimage import gaussian_filter1d
 
-from taad_smc.segmentation.trait import CurvePoint, CurveSegment
+from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 from .struct import Segmentation, TAADCurve
 

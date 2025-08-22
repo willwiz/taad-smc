@@ -7,7 +7,7 @@ from arraystubs import Arr1
 from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, update_figure_setting
 
-from taad_smc.segmentation.struct import DataSeries, Segmentation, Split
+from taad_smc.segment.struct import DataSeries, Segmentation, Split
 
 
 def plot_filtered[F: np.floating](

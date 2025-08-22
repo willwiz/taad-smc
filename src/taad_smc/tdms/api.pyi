@@ -1,0 +1,14 @@
+# Copyright (c) 2025 WillZhang
+
+from pathlib import Path
+
+import numpy as np
+
+from taad_smc.struct import Error
+
+from .struct import TDMSData, TDMSMetaData
+
+def import_tdms_raw(file: Path) -> TDMSData[np.float64] | Error: ...
+def export_tdms[F: np.floating](data: TDMSData[F], *, prefix: Path) -> None: ...
+def read_tdms_metadata_from_json(file: Path) -> TDMSMetaData: ...
+def import_tdms(file: Path) -> TDMSData[np.float64]: ...

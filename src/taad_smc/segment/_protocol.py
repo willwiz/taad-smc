@@ -220,3 +220,16 @@ def generate_tags[F: np.floating, I: np.integer](
     )
     log.debug("Curve tags:", pformat(tags, indent=2, sort_dicts=False))
     return tags
+
+
+def create_curves(
+    protocol: Mapping[str, TestProtocol],
+    start_idx: int = 0,
+    *,
+    log: ILogger = NULL_LOG,
+) -> Mapping[str, Sequence[TAADCurve[np.float64, np.intp]]]:
+    """Create curves from the protocol."""
+    curves = {k: create_curve(v) for k, v in protocol.items()}
+    aligned_curves = aligned_curve_indices(curves, start_idx=start_idx)
+    log.debug("Curves:", pformat(aligned_curves, indent=2, sort_dicts=False))
+    return aligned_curves

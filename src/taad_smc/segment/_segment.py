@@ -8,7 +8,7 @@ from pytools.logging.trait import NULL_LOG, ILogger
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 
-from taad_smc.segmentation._plotting import plot_transition
+from taad_smc.segment._plotting import plot_transition
 
 from .struct import DataSeries, Segmentation, Split, TAADCurve
 from .trait import CurvePoint
@@ -115,7 +115,7 @@ def segment_duration[F: np.floating, I: np.integer](
     curves: Sequence[TAADCurve[F, I]],
     seg: Segmentation[I, F],
     *,
-    fout: Path,
+    fout: Path | None = None,
     log: ILogger = NULL_LOG,
 ) -> Segmentation[I, F]:
     nodes = np.unique([i for c in curves for i in c.order])
@@ -130,7 +130,8 @@ def segment_duration[F: np.floating, I: np.integer](
             sort_dicts=False,
         ),
     )
-    plot_transition(data, nodes, seg, splits, fout=fout)
+    if fout is not None:
+        plot_transition(data, nodes, seg, splits, fout=fout)
     seg = validate_curve_indices(seg, nodes, splits, log=log)
     seg.idx[-1] = len(data.x)
     return seg

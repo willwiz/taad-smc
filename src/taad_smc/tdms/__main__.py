@@ -5,6 +5,9 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TypedDict, Unpack
 
+from taad_smc.struct import Error
+from taad_smc.tdms.struct import TDMSData
+
 from ._plot import plot_data
 from .api import export_tdms, import_tdms_raw
 
@@ -33,7 +36,12 @@ def parse_args(args: list[str] | None = None) -> Arguments:
 def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
     file = Path(file)
     data = import_tdms_raw(file)
-    export_tdms(data, file)
+    match data:
+        case Error(msg=msg, trace=trace):
+            print(trace.format())
+            raise ValueError(msg)
+        case TDMSData():
+            export_tdms(data, prefix=file)
     if kwargs.get("plot"):
         plot_data(data, fout=file.with_suffix(".png"))
 

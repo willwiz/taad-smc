@@ -7,11 +7,20 @@ from typing import Any
 import numpy as np
 from pytools.logging.trait import NULL_LOG, ILogger
 
+from taad_smc.struct import Error
+
 from ._nptdms import import_tdms_muscle_typeless
 from .struct import TDMSData, TDMSMetaData
 
+__all__ = [
+    "export_tdms",
+    "import_tdms",
+    "import_tdms_raw",
+    "read_tdms_metadata_from_json",
+]
 
-def import_tdms_raw(file: Path) -> TDMSData[np.float64]:
+
+def import_tdms_raw(file: Path) -> TDMSData[np.float64] | Error:
     """Return struct containing the tdms data as numpy arrays.
 
     Parameters
@@ -29,15 +38,33 @@ def import_tdms_raw(file: Path) -> TDMSData[np.float64]:
     provided for compatibility with typed function signatures.
 
     """
+    if not file.exists():
+        msg = f"File {file} does not exist."
+        return Error(msg)
+    if not file.with_suffix(".tdms_index").exists():
+        msg = f"File {file.with_suffix('.tdms_index')} does not exist."
+        return Error(msg)
     return import_tdms_muscle_typeless(file)
 
 
-def export_tdms[F: np.floating](data: TDMSData[F], file: Path) -> None:
-    with file.with_suffix(".json").open("w") as f:
+def export_tdms[F: np.floating](data: TDMSData[F], *, prefix: Path) -> None:
+    """Return None.
+
+    Export the TDMS data to JSON and raw formats.
+
+    Parameters
+    ----------
+    data : TDMSData[F]
+        The TDMS data to export.
+    prefix : Path, Kwarg
+        The prefix for the output files.
+
+    """
+    with prefix.with_suffix(".json").open("w") as f:
         json.dump(dc.asdict(data.meta), f, indent=4)
     data_csv = np.column_stack((data.time, data.disp, data.force))
     np.savetxt(
-        file.with_suffix(".raw"),
+        prefix.with_suffix(".raw"),
         data_csv,
         delimiter=",",
         header="Time,Position,Force",
@@ -53,7 +80,13 @@ def read_tdms_metadata_from_json(raw: dict[str, Any], *, log: ILogger = NULL_LOG
     return TDMSMetaData(**{k.name: raw[k.name] for k in dc.fields(TDMSMetaData)})
 
 
-def import_tdms(file: Path) -> TDMSData[np.float64]:
+def import_tdms(file: Path) -> TDMSData[np.float64] | Error:
+    if not file.exists():
+        msg = f"File {file} does not exist."
+        return Error(msg)
+    if not file.with_suffix(".json").exists():
+        msg = f"File {file.with_suffix('.json')} does not exist."
+        return Error(msg)
     with file.with_suffix(".json").open("r") as f:
         data_dict = json.load(f)
         metadata = read_tdms_metadata_from_json(data_dict)

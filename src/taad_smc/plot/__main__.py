@@ -1,9 +1,5 @@
 # Copyright (c) 2025 Will Zhang
 # License MIT License
-# /// script
-# requires-python = ">=3.13"
-# dependencies = []
-# ///
 # pyright: reportUnknownMemberType=false
 
 import argparse
@@ -14,8 +10,9 @@ from typing import TYPE_CHECKING, TypedDict, cast
 import numpy as np
 
 from taad_smc.io.api import import_data
-from taad_smc.plotting.semilog import plotxy, semilogx
-from taad_smc.plotting.struct import PlotData
+
+from .semilog import plotxy, semilogx
+from .struct import PlotData
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -33,19 +30,6 @@ class Arguments(TypedDict):
 
 
 def parse_args(args: list[str] | None = None) -> Arguments:
-    """Return parsed command line arguments as a dataclass.
-
-    Parameters
-    ----------
-    args : list[str] | None, optional
-        Command line arguments, by default None
-
-    Returns
-    -------
-    Arguments
-        Parsed command line arguments as a dataclass.
-
-    """
     files = [v for f in parser.parse_args(args).file for v in Path().glob(f)]
     return {"file": files}
 
@@ -70,7 +54,7 @@ def main(file: Path) -> None:
         xlabel="Time (s)",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_15_data = data[data["protocol"].str.contains("15", case=False)]
     segmented_data = cast(
@@ -90,7 +74,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_10_data = data[data["protocol"].str.contains("10", case=False)]
     segmented_data = cast(
@@ -110,7 +94,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_5_data = data[data["protocol"].str.contains("_5", case=False)]
     segmented_data = cast(
@@ -131,7 +115,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_fast_data = data[
         data["protocol"].str.contains("Saw", case=False)
@@ -154,7 +138,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_mid_data = data[
         data["protocol"].str.contains("Saw", case=False)
@@ -177,7 +161,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
     unique_slow_data = data[
         data["protocol"].str.contains("Saw", case=False)
@@ -200,7 +184,7 @@ def main(file: Path) -> None:
         xlabel="Strain",
         ylabel="Force (mN)",
         curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.2,
+        padbottom=0.15,
     )
 
 

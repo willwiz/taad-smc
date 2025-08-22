@@ -6,6 +6,8 @@ from pprint import pformat
 from pytools.logging.api import BLogger
 from pytools.logging.trait import NULL_LOG, ILogger
 
+from taad_smc.segment._refinement import opt_index
+
 from ._index import find_first_index, get_index_list
 from ._io import construct_postprocessed_df, import_data
 from ._parser import parser
@@ -41,6 +43,9 @@ def main(file: Path, *, log: ILogger = NULL_LOG) -> None:
             log=log,
         )
     log.debug(f"final protocol {len(data.time)}:", format(main_index.idx))
+    log.info("Optimizing main index...")
+    new_index = opt_index(data.disp, main_index.idx, windows=100, log=log)
+    main_index.idx = new_index
     df = construct_postprocessed_df(data, main_index, curves_tags)
     df.to_csv(file.with_suffix(".csv"), index=False)
 

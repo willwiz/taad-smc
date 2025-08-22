@@ -33,25 +33,21 @@ def import_data(
 ) -> tuple[TDMSData[np.float64], Mapping[str, TestProtocol]]:
     match file.suffix:
         case ".raw":
-            data = import_tdms_raw(file)
-        case ".tdms":
             data = import_tdms(file)
+        case ".tdms":
+            data = import_tdms_raw(file)
         case _:
-            log.error(f"Unsupported file type: {file.suffix}")
-            raise ValueError
+            msg = f"Unsupported file type: {file.suffix}"
+            raise ValueError(msg)
     match data:
-        case Error(msg=msg, trace=trace):
-            log.error(trace.format())
-            log.error(msg)
-            raise ValueError
+        case Error(msg=msg):
+            raise ValueError(msg)
         case TDMSData():
             log.debug("TDMS data imported successfully.", pformat(data, indent=2, sort_dicts=False))
     protocol = import_test_protocol(file)
     match protocol:
-        case Error(msg=msg, trace=trace):
-            log.error(trace.format())
-            log.error(msg)
-            raise ValueError
+        case Error(msg=msg):
+            raise ValueError(msg)
         case _:
             log.debug(
                 "Test protocol imported successfully.",

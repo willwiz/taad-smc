@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Unpack
 
 import numpy as np
+from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, figstyle, legend_kwargs, update_figure_setting
 from pytools.plotting.trait import PlotKwargs
 
@@ -24,6 +25,7 @@ def semilogx[T: np.number](
     if curve_labels is not None:
         fig.legend(curve_labels, **legend_kwargs(**kwargs))
     fig.savefig(fout)
+    plt.close(fig)
 
 
 def plotxy[T: np.number](
@@ -40,3 +42,4 @@ def plotxy[T: np.number](
     if curve_labels is not None:
         fig.legend(curve_labels, **legend_kwargs(**kwargs))
     fig.savefig(fout)
+    plt.close(fig)

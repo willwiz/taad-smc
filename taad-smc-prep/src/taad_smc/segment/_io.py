@@ -7,8 +7,7 @@ from pprint import pformat
 import numpy as np
 import pandas as pd
 from pytools.logging.trait import NULL_LOG, ILogger
-
-from taad_smc.struct import Error
+from taad_smc.io.struct import Error
 from taad_smc.tdms.api import import_tdms, import_tdms_raw
 from taad_smc.tdms.struct import TDMSData
 

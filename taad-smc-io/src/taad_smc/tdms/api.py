@@ -6,8 +6,7 @@ from typing import Any
 
 import numpy as np
 from pytools.logging.trait import NULL_LOG, ILogger
-
-from taad_smc.struct import Error
+from taad_smc.io.struct import Error
 
 from ._nptdms import import_tdms_muscle_typeless
 from .struct import TDMSData, TDMSMetaData

@@ -3,7 +3,6 @@ from collections.abc import Sequence
 
 import numpy as np
 from arraystubs import Arr1
-
 from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 

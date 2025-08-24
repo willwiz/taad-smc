@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TypedDict, Unpack
 
-from taad_smc.struct import Error
+from taad_smc.io.struct import Error
 from taad_smc.tdms.struct import TDMSData
 
 from ._plot import plot_data

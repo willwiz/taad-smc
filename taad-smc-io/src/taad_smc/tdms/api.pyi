@@ -3,8 +3,7 @@
 from pathlib import Path
 
 import numpy as np
-
-from taad_smc.struct import Error
+from taad_smc.io.struct import Error
 
 from .struct import TDMSData, TDMSMetaData
 

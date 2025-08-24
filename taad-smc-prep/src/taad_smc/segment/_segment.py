@@ -7,7 +7,6 @@ from arraystubs import Arr1
 from pytools.logging.trait import NULL_LOG, ILogger
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
-
 from taad_smc.segment._plotting import plot_transition
 
 from .struct import DataSeries, Segmentation, Split, TAADCurve

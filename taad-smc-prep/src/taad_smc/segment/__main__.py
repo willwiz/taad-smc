@@ -5,7 +5,6 @@ from pprint import pformat
 
 from pytools.logging.api import BLogger
 from pytools.logging.trait import NULL_LOG, ILogger
-
 from taad_smc.segment._refinement import opt_index
 
 from ._index import find_first_index, get_index_list

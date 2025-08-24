@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, cast
 
 import numpy as np
-
 from taad_smc.io.api import import_data
 
 from .semilog import plotxy, semilogx

@@ -8,7 +8,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, figstyle, legend_kwargs, update_figure_setting
 from pytools.plotting.trait import PlotKwargs
-
 from taad_smc.plot.struct import PlotData
 
 

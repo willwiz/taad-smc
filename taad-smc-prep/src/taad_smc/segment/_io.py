@@ -15,7 +15,8 @@ from .struct import Segmentation
 from .trait import TestProtocol
 
 
-def import_test_protocol(file: Path) -> Mapping[str, TestProtocol] | Error:
+def import_test_protocol(file: Path | str) -> Mapping[str, TestProtocol] | Error:
+    file = Path(file)
     meta_data_file = file.parent / "protocol.json"
     if not meta_data_file.exists():
         msg = f"File {meta_data_file} does not exist."
@@ -26,10 +27,11 @@ def import_test_protocol(file: Path) -> Mapping[str, TestProtocol] | Error:
 
 
 def import_data(
-    file: Path,
+    file: Path | str,
     *,
     log: ILogger = NULL_LOG,
 ) -> tuple[TDMSData[np.float64], Mapping[str, TestProtocol]]:
+    file = Path(file)
     match file.suffix:
         case ".raw":
             data = import_tdms(file)

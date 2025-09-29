@@ -100,7 +100,6 @@ def main(file: Path) -> None:
         "Sequence[pd.DataFrame]",
         [x for _, x in unique_5_data.groupby("protocol", sort=False)],
     )
-    print(segmented_data)
     plot_data = [
         PlotData(
             p["disp"].to_numpy(np.float64),

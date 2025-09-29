@@ -1,4 +1,5 @@
 from collections.abc import Mapping, Sequence
+from math import copysign
 from pprint import pformat
 
 import numpy as np
@@ -47,16 +48,22 @@ def create_trapazoid_curve(
     duration = prot.get("duration")
     max_strain = prot.get("max_strain")
     loading_rate = prot.get("loading_rate")
+    unloading_rate = prot.get("unloading_rate")
     if duration is None:
         msg = "Duration must be provided for trapazoid curve."
         raise ValueError(msg)
-    if max_strain is None or loading_rate is None:
-        msg = "Max strain and loading rate must be provided for trapazoid curve."
+    if max_strain is None or loading_rate is None or unloading_rate is None:
+        msg = "Max strain, loading rate, and unloading rate must be provided for trapazoid curve."
         raise ValueError(msg)
-    half_period = abs(max_strain / loading_rate)
+    loading_rate = copysign(loading_rate, max_strain)
+    unloading_rate = -copysign(unloading_rate, max_strain)
+    loading_period = abs(max_strain / loading_rate)
+    unloading_period = abs(max_strain / unloading_rate)
     order = np.array([0, 1, 2, 3], dtype=np.intp)
-    slope = np.array([loading_rate, 0, -0.1 * max_strain], dtype=np.float64)
-    time = np.add.accumulate(np.array([0, half_period, duration, 2], dtype=np.float64))
+    slope = np.array([loading_rate, 0, unloading_rate], dtype=np.float64)
+    time = np.add.accumulate(
+        np.array([0, loading_period, duration, unloading_period], dtype=np.float64),
+    )
     disp = max_strain * np.array([0, 1, 1, 0], dtype=np.float64)
     curve = (
         [

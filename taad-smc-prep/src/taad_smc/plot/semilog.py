@@ -6,7 +6,7 @@ from typing import Unpack
 
 import numpy as np
 from matplotlib import pyplot as plt
-from pytools.plotting.api import create_figure, figstyle, legend_kwargs, update_figure_setting
+from pytools.plotting.api import create_figure, legend_kwargs, style_kwargs, update_figure_setting
 from pytools.plotting.trait import PlotKwargs
 from taad_smc.plot.struct import PlotData
 
@@ -18,7 +18,7 @@ def semilogx[T: np.number](
 ) -> None:
     fig, ax = create_figure(**kwargs)
     update_figure_setting(fig, **kwargs)
-    style = figstyle(**kwargs)
+    style = style_kwargs(**kwargs)
     for d in data:
         ax.semilogx(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")
@@ -35,7 +35,7 @@ def plotxy[T: np.number](
 ) -> None:
     fig, ax = create_figure(**kwargs)
     update_figure_setting(fig, **kwargs)
-    style = figstyle(**kwargs)
+    style = style_kwargs(**kwargs)
     for d in data:
         ax.plot(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")

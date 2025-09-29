@@ -24,6 +24,7 @@ def parse_cli_args(args: list[str] | None = None) -> Arguments:
 
 def main(file: Path, *, log: ILogger = NULL_LOG) -> None:
     data, protocol = import_data(file, log=log)
+    data.disp = data.disp - data.disp[0]
     filtered_data = filtered_derivatives(data.time, data.disp, smoothing_window=50, repeat=5)
     plot_filtered(filtered_data, fout=file.parent / "filtered_plot.png")
     first_idx = find_first_index(filtered_data.x, tol=1e-2, log=log)

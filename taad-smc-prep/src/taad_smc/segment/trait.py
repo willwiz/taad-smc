@@ -25,6 +25,7 @@ class Protocol(TypedDict, total=False):
     max_strain: float
     loading_rate: float
     duration: float
+    unloading_rate: float
 
 
 class TestProtocol(TypedDict):

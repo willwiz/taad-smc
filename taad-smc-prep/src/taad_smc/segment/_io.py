@@ -75,7 +75,7 @@ def construct_postprocessed_df[F: np.floating, I: np.integer](
             "cycle": cycle,
             "mode": mode,
             "time": data.time,
-            "disp": data.disp,
+            "disp": data.disp - data.disp[0],
             "force": data.force,
         },
     )

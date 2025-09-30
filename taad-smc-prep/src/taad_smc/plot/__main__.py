@@ -3,18 +3,19 @@
 # pyright: reportUnknownMemberType=false
 
 import argparse
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from functools import reduce
+from operator import iand
 from pathlib import Path
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import Literal, NamedTuple, TypedDict, Unpack
 
 import numpy as np
+import pandas as pd
+from pytools.plotting.trait import PlotKwargs
 from taad_smc.io.api import import_data
 
 from .semilog import plotxy, semilogx
 from .struct import PlotData
-
-if TYPE_CHECKING:
-    import pandas as pd
 
 parser = argparse.ArgumentParser(
     description="Read a TDMS file and print its contents.",
@@ -28,18 +29,45 @@ class Arguments(TypedDict):
     file: Sequence[Path]
 
 
+class Success:
+    success: bool
+    msg: str
+
+    def __init__(self, msg: str) -> None:
+        self.success = True
+        self.msg = msg
+
+
+class Failure:
+    success: bool
+    msg: str
+
+    def __init__(self, msg: str) -> None:
+        self.success = False
+        self.msg = msg
+
+
 def parse_args(args: list[str] | None = None) -> Arguments:
     files = [v for f in parser.parse_args(args).file for v in Path().glob(f)]
     return {"file": files}
 
 
-def main(file: Path) -> None:
-    data = import_data(file)
-    relaxation_data = data[data["protocol"].str.contains("relax", case=False)]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in relaxation_data.groupby("protocol", sort=False)],
-    )
+def filter_df(data: pd.DataFrame, terms: Sequence[str]) -> pd.DataFrame:
+    filters = [data["protocol"].str.contains(t, case=False) for t in terms]
+    merged_filter: pd.Series[bool] = reduce(iand, filters)
+    return data[merged_filter]
+
+
+def make_semilogplot(
+    data: pd.DataFrame,
+    terms: Sequence[str],
+    file: Path,
+    **kwargs: Unpack[PlotKwargs],
+) -> Success | Failure:
+    filtered_data = filter_df(data, terms)
+    if filtered_data.empty:
+        return Failure(f"No data found with terms: {terms}")
+    segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
             p["time"].to_numpy(np.float64) - p["time"].to_numpy(np.float64).min(),
@@ -47,19 +75,28 @@ def main(file: Path) -> None:
         )
         for p in segmented_data
     ]
+    kwargs["xlabel"] = "Time (s)"
+    kwargs["ylabel"] = "Force (mN)"
+    kwargs["curve_labels"] = [p["protocol"].iloc[0] for p in segmented_data]
+    kwargs["padbottom"] = 0.15
     semilogx(
         plot_data,
-        file.parent / "Post_relaxation_plot.png",
-        xlabel="Time (s)",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
+        file.parent / f"Post_{'_'.join(terms)}_plot.png",
+        **kwargs,
     )
-    unique_15_data = data[data["protocol"].str.contains("15", case=False)]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_15_data.groupby("protocol", sort=False)],
-    )
+    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+
+
+def make_plotxy(
+    data: pd.DataFrame,
+    terms: Sequence[str],
+    file: Path,
+    **kwargs: Unpack[PlotKwargs],
+) -> Success | Failure:
+    filtered_data = filter_df(data, terms)
+    if filtered_data.empty:
+        return Failure(f"No data found with terms: {terms}")
+    segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
             p["disp"].to_numpy(np.float64),
@@ -67,123 +104,95 @@ def main(file: Path) -> None:
         )
         for p in segmented_data
     ]
+    kwargs["xlabel"] = "Strain"
+    kwargs["ylabel"] = "Force (mN)"
+    kwargs["curve_labels"] = [p["protocol"].iloc[0] for p in segmented_data]
+    kwargs["padbottom"] = 0.15
     plotxy(
         plot_data,
-        file.parent / ("Post_unique_15_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
+        file.parent / f"Post_{'_'.join(terms)}_plot.png",
+        **kwargs,
     )
-    unique_10_data = data[data["protocol"].str.contains("10", case=False)]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_10_data.groupby("protocol", sort=False)],
-    )
+    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+
+
+def make_plottime(
+    data: pd.DataFrame,
+    terms: Sequence[str],
+    file: Path,
+    **kwargs: Unpack[PlotKwargs],
+) -> Success | Failure:
+    filtered_data = filter_df(data, terms)
+    if filtered_data.empty:
+        return Failure(f"No data found with terms: {terms}")
+    segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
-            p["disp"].to_numpy(np.float64),
+            p["time"].to_numpy(np.float64),
             p["force"].to_numpy(np.float64),
         )
         for p in segmented_data
     ]
+    kwargs["xlabel"] = "Time (s)"
+    kwargs["ylabel"] = "Force (mN)"
+    kwargs["curve_labels"] = [p["protocol"].iloc[0] for p in segmented_data]
+    kwargs["padbottom"] = 0.15
     plotxy(
         plot_data,
-        file.parent / ("Post_unique_10_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
+        file.parent / f"Post_{'_'.join(terms)}_plot.png",
+        **kwargs,
     )
-    unique_5_data = data[data["protocol"].str.contains("_5", case=False)]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_5_data.groupby("protocol", sort=False)],
-    )
-    plot_data = [
-        PlotData(
-            p["disp"].to_numpy(np.float64),
-            p["force"].to_numpy(np.float64),
-        )
-        for p in segmented_data
-    ]
-    plotxy(
-        plot_data,
-        file.parent / ("Post_unique_5_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
-    )
-    unique_fast_data = data[
-        data["protocol"].str.contains("Saw", case=False)
-        & data["protocol"].str.contains("fast", case=False)
-    ]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_fast_data.groupby("protocol", sort=False)],
-    )
-    plot_data = [
-        PlotData(
-            p["disp"].to_numpy(np.float64),
-            p["force"].to_numpy(np.float64),
-        )
-        for p in segmented_data
-    ]
-    plotxy(
-        plot_data,
-        file.parent / ("Post_unique_fast_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
-    )
-    unique_mid_data = data[
-        data["protocol"].str.contains("Saw", case=False)
-        & data["protocol"].str.contains("mid", case=False)
-    ]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_mid_data.groupby("protocol", sort=False)],
-    )
-    plot_data = [
-        PlotData(
-            p["disp"].to_numpy(np.float64),
-            p["force"].to_numpy(np.float64),
-        )
-        for p in segmented_data
-    ]
-    plotxy(
-        plot_data,
-        file.parent / ("Post_unique_mid_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
-    )
-    unique_slow_data = data[
-        data["protocol"].str.contains("Saw", case=False)
-        & data["protocol"].str.contains("slow", case=False)
-    ]
-    segmented_data = cast(
-        "Sequence[pd.DataFrame]",
-        [x for _, x in unique_slow_data.groupby("protocol", sort=False)],
-    )
-    plot_data = [
-        PlotData(
-            p["disp"].to_numpy(np.float64),
-            p["force"].to_numpy(np.float64),
-        )
-        for p in segmented_data
-    ]
-    plotxy(
-        plot_data,
-        file.parent / ("Post_unique_slow_plot.png"),
-        xlabel="Strain",
-        ylabel="Force (mN)",
-        curve_labels=[p["protocol"].iloc[0] for p in segmented_data],
-        padbottom=0.15,
-    )
+    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+
+
+def make_plot(
+    data: pd.DataFrame,
+    terms: Sequence[str],
+    file: Path,
+    mode: Literal["xy", "semilog", "time"],
+    **kwargs: Unpack[PlotKwargs],
+) -> Success | Failure:
+    match mode:
+        case "xy":
+            return make_plotxy(data, terms, file, **kwargs)
+        case "semilog":
+            return make_semilogplot(data, terms, file, **kwargs)
+        case "time":
+            return make_plottime(data, terms, file, **kwargs)
+
+
+class PlotSpec(NamedTuple):
+    terms: Sequence[str]
+    mode: Literal["xy", "semilog", "time"]
+
+
+PLOTS: Mapping[str, PlotSpec] = {
+    # "activation_log": PlotSpec(("Activation",), "semilog"),
+    "activation_xy": PlotSpec(("Activation",), "time"),
+    "precondition": PlotSpec(("Preconditioning",), "xy"),
+    "relaxation": PlotSpec(("Relax",), "semilog"),
+    "cycling_30": PlotSpec(("Saw", "30"), "xy"),
+    "cycling_20": PlotSpec(("Saw", "20"), "xy"),
+    "cycling_10": PlotSpec(("Saw", "10"), "xy"),
+    "cycling_slow": PlotSpec(("Saw", "slow"), "xy"),
+    "cycling_mid": PlotSpec(("Saw", "mid"), "xy"),
+    "cycling_fast": PlotSpec(("Saw", "fast"), "xy"),
+}
+
+
+def main(file: Path) -> None:
+    if not file.exists():
+        print(f"File {file} does not exist, skipping...")
+        return
+    data = import_data(file)
+    ylim = (data["force"].min() - 25, data["force"].max() + 25)
+    for spec in PLOTS.values():
+        result = make_plot(data, spec.terms, file, spec.mode, ylim=ylim)
+        match result:
+            case Success(msg=msg):
+                print(f"Plot created: {msg}")
+            case Failure(msg=msg):
+                print(f"Plot skipped: {msg}")
 
 
 if __name__ == "__main__":

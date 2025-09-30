@@ -47,6 +47,7 @@ def opt_index[F: np.floating, I: np.integer](
     data: Arr1[F],
     index: Arr1[I],
     windows: int,
+    *,
     max_iter: int = 100,
     log: ILogger = NULL_LOG,
 ) -> Arr1[I]:
@@ -59,5 +60,6 @@ def opt_index[F: np.floating, I: np.integer](
         if np.array_equal(new_index, old_index):
             break
         old_index = new_index
+        windows = windows - 1 if windows > 1 else 1
     old_index[-1] = old_index[-1] + 1
     return old_index

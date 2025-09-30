@@ -23,7 +23,14 @@ def parse_cli_args(args: list[str] | None = None) -> Arguments:
 
 
 def main(file: Path, *, log: ILogger = NULL_LOG) -> None:
+    log.info(f"Processing file: {file}")
+    if file.with_suffix(".csv").exists():
+        log.info(f"Output for {file} already exists, skipping...")
+        return
     data, protocol = import_data(file, log=log)
+    if not protocol:
+        log.info(f"No protocol found in {file}, skipping...")
+        return
     data.disp = data.disp - data.disp[0]
     filtered_data = filtered_derivatives(data.time, data.disp, smoothing_window=50, repeat=5)
     plot_filtered(filtered_data, fout=file.parent / "filtered_plot.png")
@@ -44,7 +51,7 @@ def main(file: Path, *, log: ILogger = NULL_LOG) -> None:
         )
     log.debug(f"final protocol {len(data.time)}:", format(main_index.idx))
     log.info("Optimizing main index...")
-    new_index = opt_index(data.disp, main_index.idx, windows=100, log=log)
+    new_index = opt_index(data.disp, main_index.idx, windows=50, log=log)
     main_index.idx = new_index
     df = construct_postprocessed_df(data, main_index, curves_tags)
     df.to_csv(file.with_suffix(".csv"), index=False)

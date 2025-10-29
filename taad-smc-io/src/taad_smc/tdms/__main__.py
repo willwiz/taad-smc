@@ -1,7 +1,7 @@
 # Copyright (c) 2025 Will Zhang
 # License: MIT License
 import argparse
-from collections.abc import Sequence
+import typing
 from pathlib import Path
 from typing import TypedDict, Unpack
 
@@ -13,6 +13,9 @@ from taad_smc.tdms.struct import TDMSData
 from ._plot import plot_data
 from .api import export_tdms, import_tdms_raw
 
+if typing.TYPE_CHECKING:
+    from collections.abc import Sequence
+
 parser = argparse.ArgumentParser(
     description="Read a TDMS file and print its contents.",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -23,6 +26,7 @@ parser.add_argument(
     "--log",
     type=str,
     default=None,
+    choices=typing.get_args(LOG_LEVEL),
     help="Set the logging level. One of DEBUG, INFO, WARNING, ERROR, CRITICAL.",
 )
 
@@ -46,9 +50,13 @@ def parse_args(args: list[str] | None = None) -> Arguments:
 
 
 def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
-    log_level = kwargs.get("log")
-    log = BLogger("BRIEF") if log_level is None else XLogger(log_level)
     file = Path(file)
+    if file.with_suffix(".raw").exists():
+        return
+    log_level = kwargs.get("log")
+    log = (
+        BLogger("BRIEF") if log_level is None else XLogger(log_level, file.with_suffix(".tdms_log"))
+    )
     log.brief(f"Reading TDMS file: {file}")
     data = import_tdms_raw(file)
     match data:

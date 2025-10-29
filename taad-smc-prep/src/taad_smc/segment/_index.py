@@ -1,14 +1,19 @@
 import itertools
-from collections.abc import Mapping, Sequence
 from pprint import pformat
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 from scipy.ndimage import gaussian_filter1d
 from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 from .struct import Segmentation, TAADCurve
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from arraystubs import Arr1
+    from pytools.logging.trait import ILogger
 
 
 def _is_peak(
@@ -33,7 +38,7 @@ def get_index_list[F: np.floating, I: np.integer](
     curves: Mapping[str, Sequence[TAADCurve[F, I]]],
     length: int,
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Segmentation[I, np.float64]:
     index_as_intp = np.unique(
         np.array(
@@ -85,7 +90,7 @@ def find_first_index[F: np.floating](
     arr: Arr1[F],
     *,
     tol: float = 1.0e-6,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> int:
     """Find the first index of a non-zero element in a 1D array."""
     filtered = arr - arr[0:100].mean()
@@ -101,7 +106,7 @@ def find_last_index[F: np.floating](
     arr: Arr1[F],
     *,
     tol: float = 1.0e-6,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> int:
     """Find the last index of a non-zero element in a 1D array."""
     filtered = gaussian_filter1d(arr, sigma=100)

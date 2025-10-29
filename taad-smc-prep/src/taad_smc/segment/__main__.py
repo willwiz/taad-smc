@@ -2,9 +2,9 @@
 
 from pathlib import Path
 from pprint import pformat
+from typing import TYPE_CHECKING
 
-from pytools.logging.api import BLogger
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER, BLogger
 from taad_smc.segment._refinement import opt_index
 
 from ._index import find_first_index, get_index_list
@@ -13,7 +13,11 @@ from ._parser import parser
 from ._plotting import plot_filtered
 from ._protocol import create_curves, generate_tags
 from ._segment import filtered_derivatives, segment_duration
-from .trait import Arguments
+
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
+
+    from .trait import Arguments
 
 
 def parse_cli_args(args: list[str] | None = None) -> Arguments:
@@ -22,7 +26,7 @@ def parse_cli_args(args: list[str] | None = None) -> Arguments:
     return {"file": files}
 
 
-def main(file: Path, *, log: ILogger = NULL_LOG) -> None:
+def main(file: Path, *, log: ILogger = NLOGGER) -> None:
     log.info(f"Processing file: {file}")
     if file.with_suffix(".csv").exists():
         log.info(f"Output for {file} already exists, skipping...")

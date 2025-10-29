@@ -5,8 +5,6 @@
 # dependency = []
 # ///
 # pyright: reportUnknownVariableType=false, reportUnknownVariableType=false, reportUnknownMemberType=false, reportArgumentType=none, reportUnknownArgumentType=false, reportMissingTypeStubs=false
-__all__ = ["import_tdms_muscle_typeless"]
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,7 +13,12 @@ from nptdms import TdmsFile, TdmsGroup
 from .struct import TDMSData, TDMSMetaData
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from arraystubs import Arr1
+
+
+__all__ = ["import_tdms_muscle_typeless"]
 
 
 def import_tdms_muscle_typeless(file: Path) -> TDMSData[np.float64]:

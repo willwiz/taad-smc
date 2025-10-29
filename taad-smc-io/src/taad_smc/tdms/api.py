@@ -1,15 +1,19 @@
 # Copyright (c) 2025 Will Zhang
 import dataclasses as dc
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 from taad_smc.io.struct import Error
 
 from ._nptdms import import_tdms_muscle_typeless
 from .struct import TDMSData, TDMSMetaData
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from pytools.logging.trait import ILogger
 
 __all__ = [
     "export_tdms",
@@ -71,7 +75,7 @@ def export_tdms[F: np.floating](data: TDMSData[F], *, prefix: Path) -> None:
     )
 
 
-def read_tdms_metadata_from_json(raw: dict[str, Any], *, log: ILogger = NULL_LOG) -> TDMSMetaData:
+def read_tdms_metadata_from_json(raw: dict[str, Any], *, log: ILogger = NLOGGER) -> TDMSMetaData:
     for field in dc.fields(TDMSMetaData):
         if raw.get(field.name) is None:
             log.error(f"Missing {field.name} in TDMS metadata.")

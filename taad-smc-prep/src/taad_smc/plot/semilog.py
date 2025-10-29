@@ -1,14 +1,17 @@
 # Copyright (c) 2025 Will Zhang
 # pyright: reportUnknownMemberType=false
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
 from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, legend_kwargs, style_kwargs, update_figure_setting
-from pytools.plotting.trait import PlotKwargs
-from taad_smc.plot.struct import PlotData
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from pytools.plotting.trait import PlotKwargs
+    from taad_smc.plot.struct import PlotData
 
 
 def semilogx[T: np.number](

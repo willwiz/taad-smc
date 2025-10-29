@@ -1,16 +1,21 @@
-from collections.abc import Sequence
-from pathlib import Path
 from pprint import pformat
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
 from taad_smc.segment._plotting import plot_transition
 
 from .struct import DataSeries, Segmentation, Split, TAADCurve
 from .trait import CurvePoint
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from arraystubs import Arr1
+    from pytools.logging.trait import ILogger
 
 
 def filtered_derivatives[F: np.floating](
@@ -45,7 +50,7 @@ def find_indexes[F: np.floating, I: np.integer](
     nodes: Arr1[I],
     seg: Segmentation[I, F],
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Sequence[Split]:
     i_start = (seg.idx[nodes.min()] + seg.idx[nodes.min() - 1]) // 2
     i_end = seg.idx[-1]
@@ -74,7 +79,7 @@ def validate_curve_indices[I: np.integer, F: np.floating](
     nodes: Arr1[I],
     splits: Sequence[Split],
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Segmentation[I, F]:
     if len(splits) < len(nodes):
         msg = f"Fewer splits ({len(splits)}) than expected ({len(nodes)})."
@@ -115,7 +120,7 @@ def segment_duration[F: np.floating, I: np.integer](
     seg: Segmentation[I, F],
     *,
     fout: Path | None = None,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Segmentation[I, F]:
     nodes = np.unique([i for c in curves for i in c.order])
     splits = find_indexes(data.ddz, nodes, seg, log=log)

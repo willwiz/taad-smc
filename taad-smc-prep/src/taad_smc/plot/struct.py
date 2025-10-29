@@ -1,7 +1,10 @@
 import dataclasses as dc
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1
 
 
 @dc.dataclass

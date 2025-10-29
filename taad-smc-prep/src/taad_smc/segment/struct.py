@@ -1,9 +1,13 @@
 import dataclasses as dc
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
-from taad_smc.segment.trait import CurvePoint, CurveSegment
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from arraystubs import Arr1
+    from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 
 @dc.dataclass(slots=True)

@@ -1,13 +1,16 @@
 # Copyright (c) 2025 Will Zhang
 # License: MIT License
 # pyright: reportUnknownMemberType=false
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
 from pytools.plotting.api import create_figure, update_figure_setting
 
-from .struct import TDMSData
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from .struct import TDMSData
 
 
 def plot_data[F: np.floating](data: TDMSData[F], *, fout: Path) -> None:

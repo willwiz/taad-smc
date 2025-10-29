@@ -1,12 +1,17 @@
-from collections.abc import Mapping, Sequence
 from math import copysign
 from pprint import pformat
+from typing import TYPE_CHECKING
 
 import numpy as np
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 
 from .struct import TAADCurve
 from .trait import CurveSegment, Protocol, TestProtocol
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytools.logging.trait import ILogger
 
 
 def create_sawtooth_curve(
@@ -217,7 +222,7 @@ def aligned_curve_indices[F: np.floating, I: np.integer](
 def generate_tags[F: np.floating, I: np.integer](
     curves: Mapping[str, Sequence[TAADCurve[F, I]]],
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Sequence[tuple[str, int, str]]:
     """Generate tags for each curve in the protocol."""
     tags = (
@@ -233,7 +238,7 @@ def create_curves(
     protocol: Mapping[str, TestProtocol],
     start_idx: int = 0,
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> Mapping[str, Sequence[TAADCurve[np.float64, np.intp]]]:
     """Create curves from the protocol."""
     curves = {k: create_curve(v) for k, v in protocol.items()}

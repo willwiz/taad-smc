@@ -1,8 +1,12 @@
 # Copyright (c) 2025 Will Zhang
 # pyright: reportUnknownMemberType=false
-from pathlib import Path
+
+from typing import TYPE_CHECKING
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def import_data(file: Path) -> pd.DataFrame:

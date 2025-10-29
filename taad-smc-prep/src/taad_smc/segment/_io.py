@@ -1,18 +1,23 @@
 # Copyright (c) 2025 Will Zhang
 import json
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 from pprint import pformat
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
 from taad_smc.io.struct import Error
 from taad_smc.tdms.api import import_tdms, import_tdms_raw
 from taad_smc.tdms.struct import TDMSData
 
-from .struct import Segmentation
-from .trait import TestProtocol
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytools.logging.trait import ILogger
+
+    from .struct import Segmentation
+    from .trait import TestProtocol
 
 
 def import_test_protocol(file: Path | str) -> Mapping[str, TestProtocol] | Error:
@@ -29,7 +34,7 @@ def import_test_protocol(file: Path | str) -> Mapping[str, TestProtocol] | Error
 def import_data(
     file: Path | str,
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> tuple[TDMSData[np.float64], Mapping[str, TestProtocol]]:
     file = Path(file)
     match file.suffix:

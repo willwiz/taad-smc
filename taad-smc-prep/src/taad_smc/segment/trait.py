@@ -1,7 +1,9 @@
 import enum
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
 
 
 class CurveSegment(enum.StrEnum):

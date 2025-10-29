@@ -1,12 +1,16 @@
 # pyright: reportUnknownMemberType = false
-from collections.abc import Sequence
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
 from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, update_figure_setting
-from taad_smc.segment.struct import DataSeries, Segmentation, Split
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from arraystubs import Arr1
+    from taad_smc.segment.struct import DataSeries, Segmentation, Split
 
 
 def plot_filtered[F: np.floating](

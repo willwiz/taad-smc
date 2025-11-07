@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = ["taad-smc", "nptdms", "pandas", "pandas-stubs"]
 
 [tool.uv.build-backend]

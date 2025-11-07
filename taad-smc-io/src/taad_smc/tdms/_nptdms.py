@@ -15,7 +15,7 @@ from .struct import TDMSData, TDMSMetaData
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
 
 
 __all__ = ["import_tdms_muscle_typeless"]
@@ -42,8 +42,8 @@ def import_tdms_muscle_typeless(file: Path) -> TDMSData[np.float64]:
         force_voltage_range=float(tdms.properties.get("Force Voltage Range")),
         position_voltage_range=float(tdms.properties.get("Position Voltage Range")),
     )
-    force: Arr1[np.float64] = group["Force"][:].astype(np.float64)
-    disp: Arr1[np.float64] = group["Position"][:].astype(np.float64)
+    force: A1[np.float64] = group["Force"][:].astype(np.float64)
+    disp: A1[np.float64] = group["Position"][:].astype(np.float64)
     time = np.arange(0, len(force)) / metadata.daq_rate
     return TDMSData(
         time=time,

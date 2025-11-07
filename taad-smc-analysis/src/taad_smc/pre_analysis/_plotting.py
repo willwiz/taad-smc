@@ -11,12 +11,12 @@ from pytools.plotting.api import create_figure, style_kwargs, update_figure_sett
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
     from pytools.plotting.trait import PlotKwargs
 
 
 def plot_xvt[F: np.floating](
-    data: Sequence[tuple[Arr1[F], Arr1[F]]],
+    data: Sequence[tuple[A1[F], A1[F]]],
     **kwargs: Unpack[PlotKwargs],
 ) -> None:
     fig, ax = create_figure(**kwargs)

@@ -1,11 +1,14 @@
 import dataclasses as dc
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
+
+if TYPE_CHECKING:
+    from pytools.arrays import A1
 
 
 @dc.dataclass(slots=True)
 class DataCurve[F: np.floating]:
     n: int
-    time: Arr1[F]
-    strain: Arr1[F]
+    time: A1[F]
+    strain: A1[F]

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
     from taad_smc.segment.struct import DataSeries, Segmentation, Split
 
 
@@ -34,7 +34,7 @@ def plot_filtered[F: np.floating](
 
 def plot_transition[F: np.floating, I: np.integer](
     data: DataSeries[F],
-    nodes: Arr1[I],
+    nodes: A1[I],
     seg: Segmentation[I, F],
     splits: Sequence[Split],
     *,

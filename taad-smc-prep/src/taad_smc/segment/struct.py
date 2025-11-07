@@ -6,7 +6,7 @@ import numpy as np
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
     from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 
@@ -15,11 +15,11 @@ class TAADCurve[F: np.floating, I: np.integer]:
     """Data structure for TAAD curve."""
 
     nth: int
-    idx: Arr1[I]
-    order: Arr1[I]
-    time: Arr1[F]
-    disp: Arr1[F]
-    slope: Arr1[F]
+    idx: A1[I]
+    order: A1[I]
+    time: A1[F]
+    disp: A1[F]
+    slope: A1[F]
     curve: Sequence[CurveSegment]
 
 
@@ -40,15 +40,15 @@ class Split:
 
 @dc.dataclass(slots=True)
 class Segmentation[I: np.integer, F: np.floating]:
-    idx: Arr1[I]
+    idx: A1[I]
     kind: Sequence[CurvePoint]
-    rate: Arr1[F]
+    rate: A1[F]
 
 
 @dc.dataclass(slots=True)
 class DataSeries[F: np.floating]:
-    x: Arr1[F]
-    y: Arr1[F]
-    z: Arr1[F]
-    dz: Arr1[F]
-    ddz: Arr1[F]
+    x: A1[F]
+    y: A1[F]
+    z: A1[F]
+    dz: A1[F]
+    ddz: A1[F]

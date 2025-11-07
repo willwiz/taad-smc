@@ -14,13 +14,13 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
     from pytools.logging.trait import ILogger
 
 
 def filtered_derivatives[F: np.floating](
-    time: Arr1[F],
-    data: Arr1[F],
+    time: A1[F],
+    data: A1[F],
     *,
     smoothing_window: float,
     repeat: int = 5,
@@ -31,11 +31,11 @@ def filtered_derivatives[F: np.floating](
     x = gaussian_filter1d(x, smoothing_window)
     for _ in range(repeat):
         x = gaussian_filter1d(x, smoothing_window)
-    dx: Arr1[F] = np.gradient(x) * 5000
+    dx: A1[F] = np.gradient(x) * 5000
     # dx = sosfiltfilt(sos, dx).astype(data.dtype)
     # for _ in range(repeat):
     #     dx = gaussian_filter1d(dx, 3)
-    ddx: Arr1[F] = np.gradient(dx)
+    ddx: A1[F] = np.gradient(dx)
     # ddx = sosfiltfilt(sos, ddx).astype(data.dtype)
     for _ in range(repeat):
         ddx = gaussian_filter1d(ddx, 10)
@@ -46,8 +46,8 @@ def filtered_derivatives[F: np.floating](
 
 
 def find_indexes[F: np.floating, I: np.integer](
-    data: Arr1[F],
-    nodes: Arr1[I],
+    data: A1[F],
+    nodes: A1[I],
     seg: Segmentation[I, F],
     *,
     log: ILogger = NLOGGER,
@@ -76,7 +76,7 @@ def find_indexes[F: np.floating, I: np.integer](
 
 def validate_curve_indices[I: np.integer, F: np.floating](
     seg: Segmentation[I, F],
-    nodes: Arr1[I],
+    nodes: A1[I],
     splits: Sequence[Split],
     *,
     log: ILogger = NLOGGER,

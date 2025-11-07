@@ -12,7 +12,7 @@ from .struct import Segmentation, TAADCurve
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from arraystubs import Arr1
+    from pytools.arrays import A1
     from pytools.logging.trait import ILogger
 
 
@@ -87,7 +87,7 @@ def get_index_list[F: np.floating, I: np.integer](
 
 
 def find_first_index[F: np.floating](
-    arr: Arr1[F],
+    arr: A1[F],
     *,
     tol: float = 1.0e-6,
     log: ILogger = NLOGGER,
@@ -103,7 +103,7 @@ def find_first_index[F: np.floating](
 
 
 def find_last_index[F: np.floating](
-    arr: Arr1[F],
+    arr: A1[F],
     *,
     tol: float = 1.0e-6,
     log: ILogger = NLOGGER,

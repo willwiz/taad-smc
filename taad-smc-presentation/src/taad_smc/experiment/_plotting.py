@@ -2,21 +2,24 @@
 # All rights reserved.
 # pyright: reportUnknownMemberType = false
 
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 import matplotlib.pyplot as plt
 import numpy as np
-from arraystubs import Arr1
 from pytools.plotting.api import create_figure, style_kwargs, update_figure_setting
-from pytools.plotting.trait import PlotKwargs
 
-from ._structs import DataCurve
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from pytools.arrays import A1
+    from pytools.plotting.trait import PlotKwargs
+
+    from ._structs import DataCurve
 
 
 def plot_xvt[F: np.floating](
-    data: Sequence[tuple[Arr1[F], Arr1[F]]],
+    data: Sequence[tuple[A1[F], A1[F]]],
     **kwargs: Unpack[PlotKwargs],
 ) -> None:
     fig, ax = create_figure(**kwargs)

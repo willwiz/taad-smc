@@ -10,7 +10,7 @@ description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 requires-python = ">=3.14"
-dependencies = ["arraystubs", "pytools", "taad-smc-io"]
+dependencies = ["pytools", "taad-smc-io"]
 
 
 [project.optional-dependencies]
@@ -20,7 +20,6 @@ analysis = ["taad-smc-io", "taad-smc-analysis"]
 presentation = ["taad-smc-io", "taad-smc-presentation"]
 
 [tool.uv.sources]
-arraystubs = { git = "https://github.com/willwiz/arraystubs.git" }
 pytools = { git = "https://github.com/willwiz/pytools.git" }
 taad-smc = { workspace = true }
 taad-smc-io = { workspace = true }

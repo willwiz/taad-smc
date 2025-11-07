@@ -1,10 +1,12 @@
 # pyright: reportUnknownMemberType = false
-from collections.abc import Sequence
-from typing import TypedDict, Unpack
+from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
 
 from ._structs import DataCurve
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class CyclicLoadingProtocolKwargs(TypedDict, total=False):

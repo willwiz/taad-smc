@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from arraystubs import Arr1
+    from pytools.arrays import A1
 
 
 @dc.dataclass
 class PlotData[T: np.number]:
-    x: Arr1[T]
-    y: Arr1[T]
+    x: A1[T]
+    y: A1[T]

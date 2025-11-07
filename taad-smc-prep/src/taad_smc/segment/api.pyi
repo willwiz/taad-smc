@@ -2,7 +2,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 import numpy as np
-from arraystubs import Arr1
+from pytools.arrays import A1
 from pytools.logging.trait import ILogger
 
 from .struct import DataSeries, Segmentation, TAADCurve
@@ -19,13 +19,13 @@ def generate_tags(
 ) -> Sequence[tuple[str, int, str]]: ...
 def import_test_protocol(file: Path | str) -> Mapping[str, TestProtocol]: ...
 def find_first_index[F: np.floating](
-    arr: Arr1[F],
+    arr: A1[F],
     *,
     tol: float = 1.0e-6,
     log: ILogger = ...,
 ) -> int: ...
 def find_last_index[F: np.floating](
-    arr: Arr1[F],
+    arr: A1[F],
     *,
     tol: float = 1.0e-6,
     log: ILogger = ...,
@@ -37,8 +37,8 @@ def get_index_list[F: np.floating, I: np.integer](
     log: ILogger = ...,
 ) -> Segmentation[I, F]: ...
 def filtered_derivatives[F: np.floating](
-    time: Arr1[F],
-    disp: Arr1[F],
+    time: A1[F],
+    disp: A1[F],
     *,
     smoothing_window: int = 50,
     repeat: int = 5,

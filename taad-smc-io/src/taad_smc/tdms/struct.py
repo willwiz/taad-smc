@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from arraystubs import Arr1
+    from pytools.arrays import A1
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -30,9 +30,9 @@ class TDMSMetaData:
 
 @dc.dataclass(slots=True)
 class TDMSData[F: np.floating]:
-    time: Arr1[F]
-    disp: Arr1[F]
-    force: Arr1[F]
+    time: A1[F]
+    disp: A1[F]
+    force: A1[F]
     command: float
     fiber_length: float
     initial_force: float

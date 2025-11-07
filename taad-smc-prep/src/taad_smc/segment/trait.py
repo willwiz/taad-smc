@@ -38,6 +38,15 @@ class TestProtocol(TypedDict):
     args: Protocol
 
 
+class SpecimenInfo(TypedDict):
+    date: str
+    species: Literal["Pig", "Human", "Sheep"]
+    axis: Literal["Circ", "Long"]
+    input_length_mm: float | int
+    actual_length_mm: float | int
+    details: str
+
+
 class PeakKwargs(TypedDict, total=False):
     filter_width: int
     prominence: float

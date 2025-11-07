@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from pytools.logging.api import NLOGGER
-from taad_smc.io.struct import Error
+from pytools.result import Err, Okay
 
 from ._nptdms import import_tdms_muscle_typeless
 from .struct import TDMSData, TDMSMetaData
@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-def import_tdms_raw(file: Path) -> TDMSData[np.float64] | Error:
+def import_tdms_raw(file: Path) -> Okay[TDMSData[np.float64]] | Err:
     """Return struct containing the tdms data as numpy arrays.
 
     Parameters
@@ -43,11 +43,11 @@ def import_tdms_raw(file: Path) -> TDMSData[np.float64] | Error:
     """
     if not file.exists():
         msg = f"File {file} does not exist."
-        return Error(msg)
+        return Err(FileExistsError(msg))
     if not file.with_suffix(".tdms_index").exists():
         msg = f"File {file.with_suffix('.tdms_index')} does not exist."
-        return Error(msg)
-    return import_tdms_muscle_typeless(file)
+        return Err(FileExistsError(msg))
+    return Okay(import_tdms_muscle_typeless(file))
 
 
 def export_tdms[F: np.floating](data: TDMSData[F], *, prefix: Path) -> None:
@@ -83,24 +83,26 @@ def read_tdms_metadata_from_json(raw: dict[str, Any], *, log: ILogger = NLOGGER)
     return TDMSMetaData(**{k.name: raw[k.name] for k in dc.fields(TDMSMetaData)})
 
 
-def import_tdms(file: Path) -> TDMSData[np.float64] | Error:
+def import_tdms(file: Path) -> Okay[TDMSData[np.float64]] | Err:
     if not file.exists():
         msg = f"File {file} does not exist."
-        return Error(msg)
+        return Err(FileExistsError(msg))
     if not file.with_suffix(".json").exists():
         msg = f"File {file.with_suffix('.json')} does not exist."
-        return Error(msg)
+        return Err(FileExistsError(msg))
     with file.with_suffix(".json").open("r") as f:
         data_dict = json.load(f)
         metadata = read_tdms_metadata_from_json(data_dict)
     data_csv = np.loadtxt(file.with_suffix(".raw"), delimiter=",", skiprows=1, dtype=np.float64)
-    return TDMSData(
-        time=data_csv[:, 0],
-        disp=data_csv[:, 1],
-        force=data_csv[:, 2],
-        command=metadata.command,
-        fiber_length=metadata.fiber,
-        initial_force=metadata.force,
-        initial_position=metadata.position,
-        meta=metadata,
+    return Okay(
+        TDMSData(
+            time=data_csv[:, 0],
+            disp=data_csv[:, 1],
+            force=data_csv[:, 2],
+            command=metadata.command,
+            fiber_length=metadata.fiber,
+            initial_force=metadata.force,
+            initial_position=metadata.position,
+            meta=metadata,
+        )
     )

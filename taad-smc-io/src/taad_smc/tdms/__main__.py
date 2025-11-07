@@ -7,8 +7,7 @@ from typing import TypedDict, Unpack
 
 from pytools.logging.api import BLogger, XLogger
 from pytools.logging.trait import LOG_LEVEL
-from taad_smc.io.struct import Error
-from taad_smc.tdms.struct import TDMSData
+from pytools.result import Err, Okay
 
 from ._plot import plot_data
 from .api import export_tdms, import_tdms_raw
@@ -58,13 +57,11 @@ def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
         BLogger("BRIEF") if log_level is None else XLogger(log_level, file.with_suffix(".tdms_log"))
     )
     log.brief(f"Reading TDMS file: {file}")
-    data = import_tdms_raw(file)
-    match data:
-        case Error(msg=msg, trace=trace):
-            print(trace.format())
-            raise ValueError(msg)
-        case TDMSData():
+    match import_tdms_raw(file):
+        case Okay(data):
             export_tdms(data, prefix=file)
+        case Err(e):
+            raise e
     if kwargs.get("plot"):
         plot_data(data, fout=file.with_suffix(".png"))
     log.brief("Done.")

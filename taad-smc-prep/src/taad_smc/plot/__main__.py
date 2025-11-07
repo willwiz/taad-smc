@@ -3,19 +3,25 @@
 # pyright: reportUnknownMemberType=false
 
 import argparse
-from collections.abc import Mapping, Sequence
+import inspect
+import types
 from functools import reduce
 from operator import iand
 from pathlib import Path
-from typing import Literal, NamedTuple, TypedDict, Unpack
+from typing import TYPE_CHECKING, Literal, NamedTuple, TypedDict, Unpack
 
 import numpy as np
-import pandas as pd
-from pytools.plotting.trait import PlotKwargs
+from matplotlib.pylab import Any
 from taad_smc.io.api import import_data
 
 from .semilog import plotxy, semilogx
 from .struct import PlotData
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    import pandas as pd
+    from pytools.plotting.trait import PlotKwargs
 
 parser = argparse.ArgumentParser(
     description="Read a TDMS file and print its contents.",
@@ -27,6 +33,29 @@ class Arguments(TypedDict):
     """TypedDict for command line arguments."""
 
     file: Sequence[Path]
+
+
+class Okay[T: Any]:
+    value: T
+
+    def __init__(self, value: T) -> None:
+        self.value = value
+
+
+class Err:
+    value: Exception
+
+    def __init__(self, value: Exception) -> None:
+        match inspect.currentframe():
+            case None:
+                msg = "Failed to get current frame for Err."
+                raise RuntimeError(msg)
+            case types.FrameType(f_back=frame):
+                if frame is None:
+                    msg = "Failed to get caller frame for Err."
+                    raise RuntimeError(msg)
+                tb = types.TracebackType(value.__traceback__, frame, frame.f_lasti, frame.f_lineno)
+        self.value = value.with_traceback(tb)
 
 
 class Success:
@@ -63,7 +92,7 @@ def make_semilogplot(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Success | Failure:
+) -> Okay[str] | Failure:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
         return Failure(f"No data found with terms: {terms}")
@@ -84,7 +113,7 @@ def make_semilogplot(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
 
 
 def make_plotxy(
@@ -92,7 +121,7 @@ def make_plotxy(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Success | Failure:
+) -> Okay[str] | Failure:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
         return Failure(f"No data found with terms: {terms}")
@@ -113,7 +142,7 @@ def make_plotxy(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
 
 
 def make_plottime(
@@ -121,7 +150,7 @@ def make_plottime(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Success | Failure:
+) -> Okay[str] | Failure:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
         return Failure(f"No data found with terms: {terms}")
@@ -142,7 +171,7 @@ def make_plottime(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Success(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
 
 
 def make_plot(
@@ -151,7 +180,7 @@ def make_plot(
     file: Path,
     mode: Literal["xy", "semilog", "time"],
     **kwargs: Unpack[PlotKwargs],
-) -> Success | Failure:
+) -> Okay[str] | Failure:
     match mode:
         case "xy":
             return make_plotxy(data, terms, file, **kwargs)
@@ -189,7 +218,7 @@ def main(file: Path) -> None:
     for spec in PLOTS.values():
         result = make_plot(data, spec.terms, file, spec.mode, ylim=ylim)
         match result:
-            case Success(msg=msg):
+            case Okay(value=msg):
                 print(f"Plot created: {msg}")
             case Failure(msg=msg):
                 print(f"Plot skipped: {msg}")

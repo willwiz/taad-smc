@@ -33,7 +33,7 @@ def main(file: Path, *, log: ILogger = NLOGGER) -> None:
         return
     data, protocol = import_data(file, log=log)
     if not protocol:
-        log.info(f"No protocol found in {file}, skipping...")
+        log.info(f"Protocol is empty for {file}, skipping...")
         return
     data.disp = data.disp - data.disp[0]
     filtered_data = filtered_derivatives(data.time, data.disp, smoothing_window=50, repeat=5)

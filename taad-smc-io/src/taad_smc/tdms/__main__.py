@@ -7,7 +7,7 @@ from typing import TypedDict, Unpack
 
 from pytools.logging.api import BLogger, XLogger
 from pytools.logging.trait import LOG_LEVEL
-from pytools.result import Err, Okay
+from pytools.result import Err, Ok
 
 from ._plot import plot_data
 from .api import export_tdms, import_tdms_raw
@@ -58,7 +58,7 @@ def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
     )
     log.brief(f"Reading TDMS file: {file}")
     match import_tdms_raw(file):
-        case Okay(data):
+        case Ok(data):
             export_tdms(data, prefix=file)
         case Err(e):
             raise e

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from nptdms import TdmsFile, TdmsGroup
+from pytools.result import Err, Ok
 
 from .struct import TDMSData, TDMSMetaData
 
@@ -17,11 +18,19 @@ if TYPE_CHECKING:
 
     from pytools.arrays import A1
 
-
 __all__ = ["import_tdms_muscle_typeless"]
 
 
-def import_tdms_muscle_typeless(file: Path) -> TDMSData[np.float64]:
+def import_tdms_muscle_typeless(file: Path) -> Ok[TDMSData[np.float64]] | Err:
+    if file.suffix != ".tdms":
+        msg = f"Unsupported file type: {file.suffix}"
+        return Err(ValueError(msg))
+    if not file.exists():
+        msg = f"File {file} does not exist."
+        return Err(FileExistsError(msg))
+    if not file.with_suffix(".tdms_index").exists():
+        msg = f"File {file.with_suffix('.tdms_index')} does not exist."
+        return Err(FileExistsError(msg))
     tdms = TdmsFile.read(file)
     group: TdmsGroup = tdms["Data"]
     metadata = TDMSMetaData(
@@ -45,13 +54,15 @@ def import_tdms_muscle_typeless(file: Path) -> TDMSData[np.float64]:
     force: A1[np.float64] = group["Force"][:].astype(np.float64)
     disp: A1[np.float64] = group["Position"][:].astype(np.float64)
     time = np.arange(0, len(force)) / metadata.daq_rate
-    return TDMSData(
-        time=time,
-        disp=disp,
-        force=force,
-        command=metadata.command,
-        fiber_length=metadata.fiber,
-        initial_force=metadata.force,
-        initial_position=metadata.position,
-        meta=metadata,
+    return Ok(
+        TDMSData(
+            time=time,
+            disp=disp,
+            force=force,
+            command=metadata.command,
+            fiber_length=metadata.fiber,
+            initial_force=metadata.force,
+            initial_position=metadata.position,
+            meta=metadata,
+        )
     )

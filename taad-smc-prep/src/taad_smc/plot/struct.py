@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A1
 
 
-@dc.dataclass
-class PlotData[T: np.number]:
+@dc.dataclass(slots=True)
+class PlotData[T: np.floating]:
     x: A1[T]
     y: A1[T]

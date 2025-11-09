@@ -8,11 +8,12 @@ import numpy as np
 import pandas as pd
 from pytools.logging.api import NLOGGER
 from pytools.result import Err, Ok
-from taad_smc.pwlsplit._trait import FileNames
 from taad_smc.segment.trait import SpecimenInfo, TestProtocol
 from taad_smc.tdms.api import import_tdms_data
 
 from pwlsplit.trait import Segmentation
+
+from ._trait import FileNames
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -65,16 +66,16 @@ def import_specimen_info(file: Path | str) -> Ok[SpecimenInfo] | Err:
     if not validate_specimen_info(info):
         msg = f"Specimen info in {info_file} is invalid."
         return Err(ValueError(msg))
-    return Okay(info)
+    return Ok(info)
 
 
 def import_data(
     names: FileNames,
     *,
     log: ILogger = NLOGGER,
-) -> Okay[tuple[TDMSData[np.float64], Mapping[str, TestProtocol], SpecimenInfo]] | Err:
+) -> Ok[tuple[TDMSData[np.float64], Mapping[str, TestProtocol], SpecimenInfo]] | Err:
     match import_tdms_data(names.raw):
-        case Okay(data):
+        case Ok(data):
             log.debug(
                 "TDMS data imported successfully.",
                 pformat(data, indent=2, sort_dicts=False),
@@ -82,7 +83,7 @@ def import_data(
         case Err(e):
             return Err(e)
     match import_test_protocol(names.protocol):
-        case Okay(protocol):
+        case Ok(protocol):
             log.debug(
                 "Test protocol imported successfully.",
                 pformat(protocol, indent=2, sort_dicts=False),
@@ -90,14 +91,14 @@ def import_data(
         case Err(e):
             return Err(e)
     match import_specimen_info(names.info):
-        case Okay(info):
+        case Ok(info):
             log.debug(
                 "Specimen info imported successfully.",
                 pformat(info, indent=2, sort_dicts=False),
             )
         case Err(e):
             return Err(e)
-    return Okay((data, protocol, info))
+    return Ok((data, protocol, info))
 
 
 def construct_postprocessed_df[F: np.floating, I: np.integer](

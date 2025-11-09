@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, Any, Literal, TypeIs, get_args, get_origin, ge
 import numpy as np
 import pandas as pd
 from pytools.logging.api import NLOGGER
-from pytools.result import Err, Okay
+from pytools.result import Err, Ok
 from taad_smc.segment.trait import SpecimenInfo
-from taad_smc.tdms.api import import_tdms, import_tdms_raw
+from taad_smc.tdms.api import import_tdms_raw
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from .trait import TestProtocol
 
 
-def import_test_protocol(file: Path | str) -> Okay[Mapping[str, TestProtocol]] | Err:
+def import_test_protocol(file: Path | str) -> Ok[Mapping[str, TestProtocol]] | Err:
     file = Path(file)
     meta_data_file = file.parent / "protocol.json"
     if not meta_data_file.exists():
@@ -29,7 +29,7 @@ def import_test_protocol(file: Path | str) -> Okay[Mapping[str, TestProtocol]] |
         return Err(FileExistsError(msg))
     with meta_data_file.open("r") as f:
         meta_data: dict[str, TestProtocol] = json.load(f)
-    return Okay(meta_data)
+    return Ok(meta_data)
 
 
 def is_dict(dct: object) -> TypeIs[dict[Any, Any]]:
@@ -56,7 +56,7 @@ def validate_specimen_info(dct: object) -> TypeIs[SpecimenInfo]:
     return True
 
 
-def import_specimen_info(file: Path | str) -> Okay[SpecimenInfo] | Err:
+def import_specimen_info(file: Path | str) -> Ok[SpecimenInfo] | Err:
     file = Path(file)
     info_file = file.parent / "key.json"
     if not info_file.exists():
@@ -67,37 +67,37 @@ def import_specimen_info(file: Path | str) -> Okay[SpecimenInfo] | Err:
     if not validate_specimen_info(info):
         msg = f"Specimen info in {info_file} is invalid."
         return Err(ValueError(msg))
-    return Okay(info)
+    return Ok(info)
 
 
 def import_data(
     file: Path | str,
     *,
     log: ILogger = NLOGGER,
-) -> tuple[TDMSData[np.float64], Mapping[str, TestProtocol]]:
+) -> Ok[tuple[TDMSData[np.float64], Mapping[str, TestProtocol]]] | Err:
     file = Path(file)
     match file.suffix:
         case ".raw":
-            res = import_tdms(file)
+            res = import_tdms_typeless(file)
         case ".tdms":
             res = import_tdms_raw(file)
         case _:
             msg = f"Unsupported file type: {file.suffix}"
             raise ValueError(msg)
     match res:
-        case Okay(data):
+        case Ok(data):
             log.debug("TDMS data imported successfully.", pformat(data, indent=2, sort_dicts=False))
         case Err(e):
             raise e
     match import_test_protocol(file):
-        case Okay(protocol):
+        case Ok(protocol):
             log.debug(
                 "Test protocol imported successfully.",
                 pformat(protocol, indent=2, sort_dicts=False),
             )
         case Err(e):
             raise e
-    return data, protocol
+    return Ok((data, protocol))
 
 
 def construct_postprocessed_df[F: np.floating, I: np.integer](

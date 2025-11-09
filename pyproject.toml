@@ -10,7 +10,7 @@ description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 requires-python = ">=3.14"
-dependencies = ["pytools", "taad-smc-io"]
+dependencies = ["pytools", "taad-smc-io", "pwlsplit"]
 
 
 [project.optional-dependencies]
@@ -21,6 +21,7 @@ presentation = ["taad-smc-io", "taad-smc-presentation"]
 
 [tool.uv.sources]
 pytools = { git = "https://github.com/willwiz/pytools.git" }
+pwlsplit = { git = "https://github.com/willwiz/pwlsplit.git" }
 taad-smc = { workspace = true }
 taad-smc-io = { workspace = true }
 taad-smc-prep = { workspace = true }

@@ -3,15 +3,13 @@
 # pyright: reportUnknownMemberType=false
 
 import argparse
-import inspect
-import types
 from functools import reduce
 from operator import iand
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, NamedTuple, TypedDict, Unpack
 
 import numpy as np
-from matplotlib.pylab import Any
+from pytools.result import Err, Ok
 from taad_smc.io.api import import_data
 
 from .semilog import plotxy, semilogx
@@ -35,47 +33,6 @@ class Arguments(TypedDict):
     file: Sequence[Path]
 
 
-class Okay[T: Any]:
-    value: T
-
-    def __init__(self, value: T) -> None:
-        self.value = value
-
-
-class Err:
-    value: Exception
-
-    def __init__(self, value: Exception) -> None:
-        match inspect.currentframe():
-            case None:
-                msg = "Failed to get current frame for Err."
-                raise RuntimeError(msg)
-            case types.FrameType(f_back=frame):
-                if frame is None:
-                    msg = "Failed to get caller frame for Err."
-                    raise RuntimeError(msg)
-                tb = types.TracebackType(value.__traceback__, frame, frame.f_lasti, frame.f_lineno)
-        self.value = value.with_traceback(tb)
-
-
-class Success:
-    success: bool
-    msg: str
-
-    def __init__(self, msg: str) -> None:
-        self.success = True
-        self.msg = msg
-
-
-class Failure:
-    success: bool
-    msg: str
-
-    def __init__(self, msg: str) -> None:
-        self.success = False
-        self.msg = msg
-
-
 def parse_args(args: list[str] | None = None) -> Arguments:
     files = [v for f in parser.parse_args(args).file for v in Path().glob(f)]
     return {"file": files}
@@ -92,14 +49,15 @@ def make_semilogplot(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Okay[str] | Failure:
+) -> Ok[None] | Err:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
-        return Failure(f"No data found with terms: {terms}")
+        msg = f"No data found with terms: {terms}"
+        return Err(LookupError(msg))
     segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
-    plot_data = [
+    plot_data: Sequence[PlotData[np.float64]] = [
         PlotData(
-            p["time"].to_numpy(np.float64) - p["time"].to_numpy(np.float64).min(),
+            p["time"].to_numpy(np.float64) - p["time"].min().to_numpy(np.float64),
             p["force"].to_numpy(np.float64),
         )
         for p in segmented_data
@@ -113,7 +71,7 @@ def make_semilogplot(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Ok(None)
 
 
 def make_plotxy(
@@ -121,10 +79,11 @@ def make_plotxy(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Okay[str] | Failure:
+) -> Ok[None] | Err:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
-        return Failure(f"No data found with terms: {terms}")
+        msg = f"No data found with terms: {terms}"
+        return Err(LookupError(msg))
     segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
@@ -142,7 +101,7 @@ def make_plotxy(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Ok(None)
 
 
 def make_plottime(
@@ -150,10 +109,10 @@ def make_plottime(
     terms: Sequence[str],
     file: Path,
     **kwargs: Unpack[PlotKwargs],
-) -> Okay[str] | Failure:
+) -> Ok[None] | Err:
     filtered_data = filter_df(data, terms)
     if filtered_data.empty:
-        return Failure(f"No data found with terms: {terms}")
+        return Err(LookupError(f"No data found with terms: {terms}"))
     segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
@@ -171,7 +130,7 @@ def make_plottime(
         file.parent / f"Post_{'_'.join(terms)}_plot.png",
         **kwargs,
     )
-    return Okay(f"Plot <Post_{'_'.join(terms)}_plot.png> created successfully.")
+    return Ok(None)
 
 
 def make_plot(
@@ -180,7 +139,7 @@ def make_plot(
     file: Path,
     mode: Literal["xy", "semilog", "time"],
     **kwargs: Unpack[PlotKwargs],
-) -> Okay[str] | Failure:
+) -> Ok[None] | Err:
     match mode:
         case "xy":
             return make_plotxy(data, terms, file, **kwargs)
@@ -216,11 +175,10 @@ def main(file: Path) -> None:
     data = import_data(file)
     ylim = (data["force"].min() - 25, data["force"].max() + 25)
     for spec in PLOTS.values():
-        result = make_plot(data, spec.terms, file, spec.mode, ylim=ylim)
-        match result:
-            case Okay(value=msg):
-                print(f"Plot created: {msg}")
-            case Failure(msg=msg):
+        match make_plot(data, spec.terms, file, spec.mode, ylim=ylim):
+            case Ok(None):
+                print("Plot created successfully.")
+            case Err(msg):
                 print(f"Plot skipped: {msg}")
 
 

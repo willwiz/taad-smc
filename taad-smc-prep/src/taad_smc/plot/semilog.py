@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from taad_smc.plot.struct import PlotData
 
 
-def semilogx[T: np.floating](
+def semilogx[T: np.number](
     data: Sequence[PlotData[T]],
     fout: Path,
     **kwargs: Unpack[PlotKwargs],
@@ -31,7 +31,7 @@ def semilogx[T: np.floating](
     plt.close(fig)
 
 
-def plotxy[T: np.floating](
+def plotxy[T: np.number](
     data: Sequence[PlotData[T]],
     fout: Path,
     **kwargs: Unpack[PlotKwargs],

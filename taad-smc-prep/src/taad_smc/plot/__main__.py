@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, TypedDict, Unpack
 
 import numpy as np
 from pytools.result import Err, Ok
-from taad_smc.io.api import import_data
+from taad_smc.io.api import import_df
 
 from .semilog import plotxy, semilogx
 from .struct import PlotData
@@ -57,7 +57,7 @@ def make_semilogplot(
     segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data: Sequence[PlotData[np.float64]] = [
         PlotData(
-            p["time"].to_numpy(np.float64) - p["time"].min().to_numpy(np.float64),
+            p["time"].to_numpy(np.float64) - p["time"].to_numpy(np.float64).min(),
             p["force"].to_numpy(np.float64),
         )
         for p in segmented_data
@@ -172,7 +172,7 @@ def main(file: Path) -> None:
     if not file.exists():
         print(f"File {file} does not exist, skipping...")
         return
-    data = import_data(file)
+    data = import_df(file)
     ylim = (data["force"].min() - 25, data["force"].max() + 25)
     for spec in PLOTS.values():
         match make_plot(data, spec.terms, file, spec.mode, ylim=ylim):

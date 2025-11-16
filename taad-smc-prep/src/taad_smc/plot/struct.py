@@ -8,6 +8,6 @@ if TYPE_CHECKING:
 
 
 @dc.dataclass(slots=True)
-class PlotData[T: np.floating]:
+class PlotData[T: np.number]:
     x: A1[T]
     y: A1[T]

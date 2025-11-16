@@ -1,4 +1,3 @@
-__all__ = ["ParsedArgs", "TDMSData", "TDMSMetaData"]
 import dataclasses as dc
 from typing import TYPE_CHECKING
 
@@ -6,6 +5,8 @@ import numpy as np
 
 if TYPE_CHECKING:
     from pytools.arrays import A1
+
+__all__ = ["ParsedArgs", "TDMSData", "TDMSMetaData"]
 
 
 @dc.dataclass(slots=True, frozen=True)

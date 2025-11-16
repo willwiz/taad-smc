@@ -1,5 +1,5 @@
 import enum
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, Required, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -38,15 +38,6 @@ class TestProtocol(TypedDict):
     args: Protocol
 
 
-class SpecimenInfo(TypedDict):
-    date: str
-    species: Literal["Pig", "Human", "Sheep"]
-    axis: Literal["Circ", "Long"]
-    input_length_mm: float | int
-    actual_length_mm: float | int
-    details: str
-
-
 class PeakKwargs(TypedDict, total=False):
     filter_width: int
     prominence: float
@@ -56,3 +47,14 @@ class FindPeakKwargs(TypedDict, total=False):
     prominence: float
     width: float
     wlen: int
+
+
+class OldProtocol(TypedDict, total=False):
+    """TypedDict for test protocol."""
+
+    type: Required[Literal["Sawtooth", "Trapazoid", "Hold", "Slack"]]
+    repeat: Required[int]
+    duration: float
+    max_strain: float
+    loading: float
+    unloading: float

@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from pytools.logging.api import NLOGGER
 from pytools.result import Err, Ok
-from taad_smc.segment.trait import SpecimenInfo
+from taad_smc.segment.trait import OldProtocol
+from taad_smc.tdms._nptdms import import_tdms_muscle_typeless
 from taad_smc.tdms.api import import_tdms_raw
 
 if TYPE_CHECKING:
@@ -36,10 +37,10 @@ def is_dict(dct: object) -> TypeIs[dict[Any, Any]]:
     return isinstance(dct, dict)
 
 
-def validate_specimen_info(dct: object) -> TypeIs[SpecimenInfo]:
+def validate_specimen_info(dct: object) -> TypeIs[OldProtocol]:
     if not is_dict(dct):
         return False
-    for key, value_type in get_type_hints(SpecimenInfo).items():
+    for key, value_type in get_type_hints(OldProtocol).items():
         value = dct.get(key)
         if value is None:
             print(f"Missing key: {key}")
@@ -56,7 +57,7 @@ def validate_specimen_info(dct: object) -> TypeIs[SpecimenInfo]:
     return True
 
 
-def import_specimen_info(file: Path | str) -> Ok[SpecimenInfo] | Err:
+def import_specimen_info(file: Path | str) -> Ok[OldProtocol] | Err:
     file = Path(file)
     info_file = file.parent / "key.json"
     if not info_file.exists():
@@ -78,9 +79,9 @@ def import_data(
     file = Path(file)
     match file.suffix:
         case ".raw":
-            res = import_tdms_typeless(file)
-        case ".tdms":
             res = import_tdms_raw(file)
+        case ".tdms":
+            res = import_tdms_muscle_typeless(file)
         case _:
             msg = f"Unsupported file type: {file.suffix}"
             raise ValueError(msg)

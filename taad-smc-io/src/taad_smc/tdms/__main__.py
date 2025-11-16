@@ -8,9 +8,10 @@ from typing import TypedDict, Unpack
 from pytools.logging.api import BLogger, XLogger
 from pytools.logging.trait import LOG_LEVEL
 from pytools.result import Err, Ok
+from taad_smc.tdms._nptdms import import_tdms_muscle_typeless
 
 from ._plot import plot_data
-from .api import export_tdms, import_tdms_raw
+from .api import export_tdms
 
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -57,7 +58,7 @@ def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
         BLogger("BRIEF") if log_level is None else XLogger(log_level, file.with_suffix(".tdms_log"))
     )
     log.brief(f"Reading TDMS file: {file}")
-    match import_tdms_raw(file):
+    match import_tdms_muscle_typeless(file):
         case Ok(data):
             export_tdms(data, prefix=file)
         case Err(e):

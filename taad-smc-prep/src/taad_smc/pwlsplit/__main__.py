@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pytools.logging.api import BLogger
+from pytools.result import Err, Ok
 from taad_smc.pwlsplit._tools import create_names, parser_optional_args
 
 from ._argparse import parser_cmdline_args
@@ -13,7 +14,11 @@ if TYPE_CHECKING:
 
 def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
     log.info(f"Processing file: {file}")
-    names = create_names(file)
+    match create_names(file):
+        case Ok(names):
+            pass
+        case Err(e):
+            raise e
     if names.csv.exists() and not opts.overwrite:
         log.info(f"Output for {file} already exists, skipping...")
         return

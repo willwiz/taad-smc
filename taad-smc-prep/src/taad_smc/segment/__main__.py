@@ -5,6 +5,7 @@ from pprint import pformat
 from typing import TYPE_CHECKING
 
 from pytools.logging.api import NLOGGER, BLogger
+from pytools.result import Err, Ok
 from taad_smc.segment._refinement import opt_index
 
 from ._index import find_first_index, get_index_list
@@ -31,7 +32,11 @@ def main(file: Path, *, log: ILogger = NLOGGER) -> None:
     if file.with_suffix(".csv").exists():
         log.info(f"Output for {file} already exists, skipping...")
         return
-    data, protocol = import_data(file, log=log)
+    match import_data(file, log=log):
+        case Err(e):
+            raise e
+        case Ok((data, protocol)):
+            pass
     if not protocol:
         log.info(f"Protocol is empty for {file}, skipping...")
         return

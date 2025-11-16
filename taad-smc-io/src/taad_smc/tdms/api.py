@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "export_tdms",
-    "import_tdms_raw",
+    "import_tdms_data",
 ]
 
 

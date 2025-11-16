@@ -11,7 +11,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from pytools.plotting.trait import PlotKwargs
-    from taad_smc.plot.struct import PlotData
+
+    from .struct import PlotData
 
 
 def semilogx[T: np.number](

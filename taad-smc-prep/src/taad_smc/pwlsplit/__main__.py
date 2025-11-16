@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 from pytools.logging.api import BLogger
 from pytools.result import Err, Ok
-from taad_smc.pwlsplit._tools import create_names, parser_optional_args
 
 from ._argparse import parser_cmdline_args
+from ._tools import create_names, parser_optional_args
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger

@@ -37,5 +37,6 @@ members = [
     "./taad-smc-presentation",
 ]
 
-[tool.uv.build-backend]
-namespace = true
+[tool.uv]
+build-backend = { namespace = true }
+config-settings = { editable_mode = "compat" }

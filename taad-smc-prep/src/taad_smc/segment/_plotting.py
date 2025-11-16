@@ -10,7 +10,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from pytools.arrays import A1
-    from taad_smc.segment.struct import DataSeries, Segmentation, Split
+
+    from .struct import DataSeries, Segmentation, Split
 
 
 def plot_filtered[F: np.floating](

@@ -8,8 +8,8 @@ from typing import TypedDict, Unpack
 from pytools.logging.api import BLogger, XLogger
 from pytools.logging.trait import LOG_LEVEL
 from pytools.result import Err, Ok
-from taad_smc.tdms._nptdms import import_tdms_muscle_typeless
 
+from ._nptdms import import_tdms_muscle_typeless
 from ._plot import plot_data
 from .api import export_tdms
 

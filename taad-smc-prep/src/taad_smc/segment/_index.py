@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pytools.logging.api import NLOGGER
 from scipy.ndimage import gaussian_filter1d
-from taad_smc.segment.trait import CurvePoint, CurveSegment
 
 from .struct import Segmentation, TAADCurve
+from .trait import CurvePoint, CurveSegment
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

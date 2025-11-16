@@ -5,8 +5,8 @@ import numpy as np
 from pytools.logging.api import NLOGGER
 from scipy.ndimage import gaussian_filter1d
 from scipy.signal import find_peaks
-from taad_smc.segment._plotting import plot_transition
 
+from ._plotting import plot_transition
 from .struct import DataSeries, Segmentation, Split, TAADCurve
 from .trait import CurvePoint
 

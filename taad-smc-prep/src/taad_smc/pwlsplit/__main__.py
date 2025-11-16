@@ -20,19 +20,18 @@ def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
     log.debug(f"Options: {opts}")
     match create_names(file):
         case Ok(names):
-            pass
+            if names.csv.exists() and not opts.overwrite:
+                log.info(f"Output for {file} already exists, skipping...")
+                return
         case Err(e):
             raise e
-    if names.csv.exists() and not opts.overwrite:
-        log.info(f"Output for {file} already exists, skipping...")
-        return
     match import_data(names, log=log):
-        case Err(e):
-            raise e
         case Ok((data, protocol, info)):
             log.debug(pformat(data, sort_dicts=False))
             log.debug(pformat(info, sort_dicts=False))
             log.debug(pformat(protocol, sort_dicts=False))
+        case Err(e):
+            raise e
 
 
 if __name__ == "__main__":
@@ -40,5 +39,7 @@ if __name__ == "__main__":
     opts = parser_optional_args(args)
     logger = BLogger(args.log)
     files = [Path(f) for name in args.files for f in Path().glob(name)]
+    if not files:
+        logger.error("No input files found. with input patterns: ", args.files)
     for file in files:
         main(file, opts=opts, log=logger)

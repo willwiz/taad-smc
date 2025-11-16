@@ -14,7 +14,12 @@ dependencies = ["pytools", "taad-smc-io", "pwlsplit"]
 
 
 [project.optional-dependencies]
-all = ["taad-smc-prep", "taad-smc-analysis", "taad-smc-io"]
+all = [
+    "taad-smc-io",
+    "taad-smc-prep",
+    "taad-smc-analysis",
+    "taad-smc-presentation",
+]
 prep = ["taad-smc-prep"]
 analysis = ["taad-smc-io", "taad-smc-analysis"]
 presentation = ["taad-smc-io", "taad-smc-presentation"]

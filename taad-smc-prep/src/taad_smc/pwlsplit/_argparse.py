@@ -13,7 +13,7 @@ _parser = argparse.ArgumentParser(
 _parser.add_argument("files", type=str, nargs="+", help="Path to the TDMS files to split.")
 _parser.add_argument("--plot", action="store_true", help="Plot the split data.")
 _parser.add_argument(
-    "--log", type=str, default="INFO", choices=get_args(LOG_LEVEL), help="Set the logging level."
+    "--log", type=str.upper, default="INFO", choices=get_args(LOG_LEVEL), help="Set  log level."
 )
 _parser.add_argument(
     "--smoothing-window",
@@ -21,6 +21,7 @@ _parser.add_argument(
     default=50,
     help="Smoothing window size for the filtered derivatives.",
 )
+_parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files.")
 
 
 @dc.dataclass

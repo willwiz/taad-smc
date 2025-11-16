@@ -20,6 +20,10 @@ if TYPE_CHECKING:
     from ._trait import FileNames
 
 
+def _format_dict(dct: object, indent: int = 2) -> str:
+    return pformat(dct, indent=indent, sort_dicts=False)
+
+
 def import_data(
     names: FileNames,
     *,
@@ -27,26 +31,17 @@ def import_data(
 ) -> Ok[tuple[TDMSData[np.float64], Mapping[str, TestProtocol], SpecimenInfo]] | Err:
     match import_tdms_data(names.raw):
         case Ok(data):
-            log.debug(
-                "TDMS data imported successfully.",
-                pformat(data, indent=2, sort_dicts=False),
-            )
+            log.debug("TDMS data imported successfully.", _format_dict(data))
         case Err(e):
             return Err(e)
     match import_test_protocol(names.protocol):
         case Ok(protocol):
-            log.debug(
-                "Test protocol imported successfully.",
-                pformat(protocol, indent=2, sort_dicts=False),
-            )
+            log.debug("Test protocol imported successfully.", _format_dict(protocol))
         case Err(e):
             return Err(e)
     match import_specimen_info(names.info):
         case Ok(info):
-            log.debug(
-                "Specimen info imported successfully.",
-                pformat(info, indent=2, sort_dicts=False),
-            )
+            log.debug("Specimen info imported successfully.", _format_dict(info))
         case Err(e):
             return Err(e)
     return Ok((data, protocol, info))

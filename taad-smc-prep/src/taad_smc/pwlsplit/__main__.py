@@ -43,7 +43,6 @@ def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
     log.info("Plotting prepped data...")
     plot_prepped_data(prepped_data, fout=names.parent / "FindPeaks_prepped.png")
     protocol_map, curves = compile_taadsmc_curves(protocol).unwrap()
-
     log.info("Protocol constructed successfully.")
     log.debug(pformat(protocol_map, sort_dicts=False))
     log.debug(pformat(curves, sort_dicts=False))

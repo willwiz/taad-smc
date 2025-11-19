@@ -9,6 +9,7 @@ class SpecimenInfo(TypedDict):
     date: str
     species: Literal["Pig", "Human", "Sheep"]
     axis: Literal["Circ", "Long"]
+    strain: float
     input_length_mm: float | int
     actual_length_mm: float | int
     details: str

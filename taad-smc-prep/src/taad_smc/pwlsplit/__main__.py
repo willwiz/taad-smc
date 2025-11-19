@@ -3,11 +3,21 @@ from pprint import pformat
 from typing import TYPE_CHECKING
 
 from pytools.logging.api import BLogger
-from pytools.result import Err, Ok
+
+from pwlsplit.curve.peaks import construct_initial_segmentation
+from pwlsplit.plot import plot_prepped_data
+from pwlsplit.segment.refine import opt_index
 
 from ._argparse import parser_cmdline_args
 from ._io import import_data
-from ._tools import create_names, parser_optional_args
+from ._loops import segmentation_loop
+from ._tools import (
+    compile_taadsmc_curves,
+    construct_postprocessed_df,
+    create_names,
+    filter_derivative,
+    parser_optional_args,
+)
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
@@ -16,22 +26,40 @@ if TYPE_CHECKING:
 
 
 def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
-    log.info(f"Processing file: {file}")
-    log.debug(f"Options: {opts}")
-    match create_names(file):
-        case Ok(names):
-            if names.csv.exists() and not opts.overwrite:
-                log.info(f"Output for {file} already exists, skipping...")
-                return
-        case Err(e):
-            raise e
-    match import_data(names, log=log):
-        case Ok((data, protocol, info)):
-            log.debug(pformat(data, sort_dicts=False))
-            log.debug(pformat(info, sort_dicts=False))
-            log.debug(pformat(protocol, sort_dicts=False))
-        case Err(e):
-            raise e
+    log.brief(f"Processing file: {file}")
+    log.info(f"Options: {opts}")
+    names = create_names(file).unwrap()
+    if names.csv.exists() and not opts.overwrite:
+        log.info(f"Output for {file} already exists, skipping...")
+        return
+    log.info("Importing data...")
+    data, protocol, info = import_data(names, log=log).unwrap()
+    log.info("Data imported successfully.")
+    log.debug(pformat(data, sort_dicts=False))
+    log.debug(pformat(info, sort_dicts=False))
+    log.debug(pformat(protocol, sort_dicts=False))
+    log.info("Filtering derivative...")
+    prepped_data = filter_derivative(data.disp, window=opts.window, repeat=opts.repeat)
+    log.info("Plotting prepped data...")
+    plot_prepped_data(prepped_data, fout=names.parent / "FindPeaks_prepped.png")
+    protocol_map, curves = compile_taadsmc_curves(protocol).unwrap()
+
+    log.info("Protocol constructed successfully.")
+    log.debug(pformat(protocol_map, sort_dicts=False))
+    log.debug(pformat(curves, sort_dicts=False))
+    log.info("Constructing initial segmentation...")
+    segmentation = construct_initial_segmentation(curves).unwrap()
+    log.debug(pformat(segmentation, sort_dicts=False))
+    segmentation = segmentation_loop(
+        protocol_map, segmentation, prepped_data, log=log, fparent=names.parent
+    ).unwrap()
+    log.info("Refining segmentation...")
+    segmentation.idx = opt_index(
+        prepped_data.x, segmentation.idx, window=int(opts.window), max_iter=100, log=log
+    )
+    df = construct_postprocessed_df(data, info, protocol_map, segmentation)
+    df.to_csv(names.csv, index=False)
+    log.brief(f"Final segmentation (n={len(data.time)}) complete.")
 
 
 if __name__ == "__main__":

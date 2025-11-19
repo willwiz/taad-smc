@@ -4,15 +4,18 @@ from pwlsplit.trait import SegmentDict
 from pytools.result import Err, Ok
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from taad_smc.io.trait import TestProtocol
 
+__all__ = ["construct_protocol", "validate_protocol"]
+
+
 _TEST_DICTS: dict[Literal["Sawtooth", "Trapazoid", "Hold", "Slack"], set[str]] = {
-    "Sawtooth": {"repeat", "max_strain", "duration"},
-    "Trapazoid": {"repeat", "max_strain", "loading", "unloading"},
-    "Hold": {"repeat"},
-    "Slack": {"repeat", "max_strain", "duration", "loading"},
+    "Sawtooth": {"max_strain", "duration"},
+    "Trapazoid": {"max_strain", "loading", "unloading"},
+    "Hold": set(),
+    "Slack": {"max_strain", "duration", "loading"},
 }
 
 
@@ -31,7 +34,7 @@ def validate_protocol(test: TestProtocol) -> Ok[None] | Err:
     return Ok(None)
 
 
-def _construct_sawtooth_segments(test: TestProtocol) -> Ok[Sequence[SegmentDict]] | Err:
+def _construct_sawtooth_segments(test: TestProtocol) -> Ok[list[SegmentDict]] | Err:
     match test.get("max_strain"):
         case None:
             return Err(LookupError("Missing 'max_strain' for Sawtooth protocol."))
@@ -45,21 +48,21 @@ def _construct_sawtooth_segments(test: TestProtocol) -> Ok[Sequence[SegmentDict]
     if delta > 0:
         return Ok(
             [
-                SegmentDict(curve="STRETCH", delta=delta, duration=duration),
-                SegmentDict(curve="RECOVER", delta=-delta, duration=duration),
+                SegmentDict(curve="STRETCH", delta=delta, time=duration),
+                SegmentDict(curve="RECOVER", delta=-delta, time=duration),
             ]
         )
     return Ok(
         [
-            SegmentDict(curve="RECOVER", delta=delta, duration=duration),
-            SegmentDict(curve="STRETCH", delta=-delta, duration=duration),
+            SegmentDict(curve="RECOVER", delta=delta, time=duration),
+            SegmentDict(curve="STRETCH", delta=-delta, time=duration),
         ]
     )
 
 
 def _construct_trapazoid_segments(
     test: TestProtocol,
-) -> Ok[Sequence[SegmentDict]] | Err:
+) -> Ok[list[SegmentDict]] | Err:
     match test.get("max_strain"):
         case None:
             return Err(LookupError("Missing 'max_strain' for Trapazoid protocol."))
@@ -78,25 +81,25 @@ def _construct_trapazoid_segments(
     if delta > 0:
         return Ok(
             [
-                SegmentDict(curve="STRETCH", delta=delta, duration=loading),
+                SegmentDict(curve="STRETCH", delta=delta, time=loading),
                 SegmentDict(curve="HOLD"),
-                SegmentDict(curve="RECOVER", delta=-delta, duration=unloading),
+                SegmentDict(curve="RECOVER", delta=-delta, time=unloading),
             ]
         )
     return Ok(
         [
-            SegmentDict(curve="RECOVER", delta=delta, duration=loading),
+            SegmentDict(curve="RECOVER", delta=delta, time=loading),
             SegmentDict(curve="HOLD"),
-            SegmentDict(curve="STRETCH", delta=-delta, duration=unloading),
+            SegmentDict(curve="STRETCH", delta=-delta, time=unloading),
         ]
     )
 
 
-def _construct_hold_segments(_test: TestProtocol) -> Ok[Sequence[SegmentDict]] | Err:
+def _construct_hold_segments(_test: TestProtocol) -> Ok[list[SegmentDict]] | Err:
     return Ok([SegmentDict(curve="HOLD")])
 
 
-def _construct_slack_segments(test: TestProtocol) -> Ok[Sequence[SegmentDict]] | Err:
+def _construct_slack_segments(test: TestProtocol) -> Ok[list[SegmentDict]] | Err:
     match test.get("max_strain"):
         case None:
             return Err(LookupError("Missing 'max_strain' for Slack protocol."))
@@ -110,27 +113,33 @@ def _construct_slack_segments(test: TestProtocol) -> Ok[Sequence[SegmentDict]] |
     if delta > 0:
         return Ok(
             [
-                SegmentDict(curve="STRETCH", delta=delta, duration=loading),
+                SegmentDict(curve="STRETCH", delta=delta, time=loading),
                 SegmentDict(curve="HOLD"),
-                SegmentDict(curve="RECOVER", delta=-delta, duration=loading),
+                SegmentDict(curve="RECOVER", delta=-delta, time=loading),
             ]
         )
     return Ok(
         [
-            SegmentDict(curve="RECOVER", delta=delta, duration=loading),
+            SegmentDict(curve="RECOVER", delta=delta, time=loading),
             SegmentDict(curve="HOLD"),
-            SegmentDict(curve="STRETCH", delta=-delta, duration=loading),
+            SegmentDict(curve="STRETCH", delta=-delta, time=loading),
         ]
     )
 
 
-def construct_protocol(test: TestProtocol) -> Ok[Sequence[SegmentDict]] | Err:
+def construct_protocol(test: TestProtocol) -> Ok[Mapping[str, Sequence[SegmentDict]]] | Err:
+    repeat = test.get("repeat", 1)
     match test["type"]:
         case "Sawtooth":
-            return _construct_sawtooth_segments(test)
+            res = _construct_sawtooth_segments(test)
         case "Trapazoid":
-            return _construct_trapazoid_segments(test)
+            res = _construct_trapazoid_segments(test)
         case "Hold":
-            return _construct_hold_segments(test)
+            res = _construct_hold_segments(test)
         case "Slack":
-            return _construct_slack_segments(test)
+            res = _construct_slack_segments(test)
+    match res:
+        case Ok(segments):
+            return Ok({f"cycle_{i}": segments for i in range(repeat)})
+        case Err(e):
+            return Err(e)

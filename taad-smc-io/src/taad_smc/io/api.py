@@ -86,4 +86,10 @@ def import_test_protocol(file: Path) -> Ok[Mapping[str, TestProtocol]] | Err:
         return Err(FileExistsError(msg))
     with file.open("r") as f:
         meta_data: dict[str, TestProtocol] = json.load(f)
+    for test in meta_data.values():
+        match validate_protocol(test):
+            case Err(e):
+                return Err(e)
+            case Ok(None):
+                continue
     return Ok(meta_data)

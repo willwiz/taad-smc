@@ -17,9 +17,13 @@ _parser.add_argument(
 )
 _parser.add_argument(
     "--smoothing-window",
-    type=int,
-    default=50,
+    type=float,
     help="Smoothing window size for the filtered derivatives.",
+)
+_parser.add_argument(
+    "--smoothing-repeat",
+    type=int,
+    help="Number of times to repeat the smoothing.",
 )
 _parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files.")
 
@@ -30,11 +34,14 @@ class ParsedArguments:
     plot: bool
     log: LOG_LEVEL
     overwrite: bool
-    smoothing_window: int
+    smoothing_window: float
+    smoothing_repeat: int
 
 
 def parser_cmdline_args(args: list[str] | None = None) -> ParsedArguments:
     return _parser.parse_args(
         args,
-        namespace=ParsedArguments([], plot=False, log="INFO", overwrite=False, smoothing_window=50),
+        namespace=ParsedArguments(
+            [], plot=False, log="INFO", overwrite=False, smoothing_window=50, smoothing_repeat=1
+        ),
     )

@@ -1,7 +1,10 @@
 import dataclasses as dc
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
+
+from pwlsplit.trait import SegmentDict
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -14,11 +17,14 @@ if TYPE_CHECKING:
 class SegmentOptions:
     plot: bool
     overwrite: bool
+    window: float
+    repeat: int
     log: LogLevel
 
 
 @dc.dataclass(slots=True)
 class FileNames:
+    parent: Path
     raw: Path
     csv: Path
     protocol: Path
@@ -32,3 +38,6 @@ class DataSeries[F: np.floating]:
     z: A1[F]
     dz: A1[F]
     ddz: A1[F]
+
+
+PROTOCOL_MAP = Mapping[str, Mapping[str, Mapping[int, SegmentDict]]]

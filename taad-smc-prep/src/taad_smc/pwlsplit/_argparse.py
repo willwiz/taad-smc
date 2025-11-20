@@ -28,7 +28,7 @@ _parser.add_argument(
 _parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files.")
 
 
-@dc.dataclass
+@dc.dataclass(slots=True)
 class ParsedArguments:
     files: list[str]
     plot: bool
@@ -42,6 +42,6 @@ def parser_cmdline_args(args: list[str] | None = None) -> ParsedArguments:
     return _parser.parse_args(
         args,
         namespace=ParsedArguments(
-            [], plot=False, log="INFO", overwrite=False, smoothing_window=50, smoothing_repeat=1
+            [], plot=False, log="INFO", overwrite=False, smoothing_window=50, smoothing_repeat=2
         ),
     )

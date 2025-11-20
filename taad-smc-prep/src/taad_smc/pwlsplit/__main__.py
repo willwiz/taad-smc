@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
     log.brief(f"Processing file: {file}")
-    log.info(f"Options: {opts}")
+    log.info("Options:", pformat(opts, sort_dicts=False))
     names = create_names(file).unwrap()
     if names.csv.exists() and not opts.overwrite:
         log.info(f"Output for {file} already exists, skipping...")
@@ -49,8 +49,9 @@ def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:
     log.info("Constructing initial segmentation...")
     segmentation = construct_initial_segmentation(curves).unwrap()
     log.debug(pformat(segmentation, sort_dicts=False))
+    fparent = names.parent if opts.plot else None
     segmentation = segmentation_loop(
-        protocol_map, segmentation, prepped_data, log=log, fparent=names.parent
+        protocol_map, segmentation, prepped_data, log=log, fparent=fparent
     ).unwrap()
     log.info("Refining segmentation...")
     segmentation.idx = opt_index(

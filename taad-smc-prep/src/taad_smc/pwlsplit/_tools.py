@@ -108,7 +108,7 @@ def construct_postprocessed_df[F: np.floating, I: np.integer](
                 protocols[slice_ix] = p.encode("utf-8")
                 cycle[slice_ix] = c.encode("utf-8")
                 mode[slice_ix] = seg["curve"].encode("utf-8")
-    disp = (data.disp - 0.5 * info["strain"]) * info["input_length_mm"] / info["actual_length_mm"]
+    disp = (data.disp + 0.5 * info["strain"]) * info["input_length_mm"] / info["actual_length_mm"]
     return pd.DataFrame(
         {
             "protocol": protocols,

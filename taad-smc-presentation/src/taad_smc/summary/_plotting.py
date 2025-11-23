@@ -1,0 +1,1 @@
+# pyright: reportUnknownMemberType = false

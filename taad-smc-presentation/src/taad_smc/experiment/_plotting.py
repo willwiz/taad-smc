@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A1
     from pytools.plotting.trait import PlotKwargs
 
-    from ._structs import DataCurve
+    from .types import DataCurve
 
 
 def plot_xvt[F: np.floating](

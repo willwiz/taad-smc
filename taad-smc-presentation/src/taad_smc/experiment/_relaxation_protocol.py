@@ -3,7 +3,7 @@ from typing import TypedDict, Unpack
 
 import numpy as np
 
-from ._structs import DataCurve
+from .types import DataCurve
 
 
 class RelaxationProtocolKwargs(TypedDict, total=False):

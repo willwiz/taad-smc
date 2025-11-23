@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
 
-from ._structs import DataCurve
+from .types import DataCurve
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

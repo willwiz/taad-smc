@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-def import_df(file: Path) -> pd.DataFrame:
+def import_df(file: Path) -> Ok[pd.DataFrame] | Err:
     """Return a pandas DataFrame from a CSV file.
 
     Parameters
@@ -39,7 +39,9 @@ def import_df(file: Path) -> pd.DataFrame:
         DataFrame containing the data from the CSV file.
 
     """
-    return pd.read_csv(file)
+    if file.exists():
+        return Ok(pd.read_csv(file))
+    return Err(FileExistsError(f"{file} not found"))
 
 
 def _is_dict(dct: object) -> TypeIs[dict[Any, Any]]:

@@ -3,9 +3,11 @@ import re
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
+from pytools.result import Err, Ok
+from taad_smc.io.api import import_df
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
     from pathlib import Path
 
     import pandas as pd
@@ -21,7 +23,7 @@ __all__ = [
 
 
 @dc.dataclass(slots=True)
-class PlotData[F: np.floating]:
+class PlotData[F: np.number]:
     x: A1[F]
     y: A1[F]
 
@@ -53,16 +55,35 @@ PROTOCOLS: Mapping[PROTOCOL_NAMES, re.Pattern[str]] = {
 }
 
 
+class CachableData:
+    __slots__ = ("_data", "_file")
+    _file: Path
+    _data: pd.DataFrame | None
+
+    def __init__(self, file: Path) -> None:
+        self._file = file
+        self._data = None
+
+    @property
+    def file(self) -> Path:
+        return self._file
+
+    def v(self) -> Ok[pd.DataFrame] | Err:
+        if self._data is not None:
+            return Ok(self._data)
+        match import_df(self._file):
+            case Err(e):
+                msg = f"Failed to import data from {self._file}: {e}"
+                return Err(FileExistsError(msg))
+            case Ok(df):
+                self._data = df
+                return Ok(df)
+
+
 @dc.dataclass(slots=True)
 class SpecimenData:
     home: Path
-    activation: Sequence[pd.DataFrame] | None = None
-    activated: Sequence[pd.DataFrame] | None = None
-    deactivation: Sequence[pd.DataFrame] | None = None
-    deactivated: Sequence[pd.DataFrame] | None = None
-    initial: Sequence[pd.DataFrame] | None = None
-    rest_start: pd.DataFrame | None = None
-    rest_end: pd.DataFrame | None = None
-    preconditioning_start: pd.DataFrame | None = None
-    preconditioning_activated: pd.DataFrame | None = None
-    preconditioning_deactivated: pd.DataFrame | None = None
+    _data: dict[PROTOCOL_NAMES, Mapping[int, CachableData] | None]
+
+    def __getitem__(self, name: PROTOCOL_NAMES) -> Mapping[int, CachableData] | None:
+        return self._data.get(name)

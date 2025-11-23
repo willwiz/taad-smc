@@ -84,6 +84,8 @@ def make_plotxy(
     if filtered_data.empty:
         msg = f"No data found with terms: {terms}"
         return Err(LookupError(msg))
+    cycle = filtered_data["cycle"] == "cycle_2"
+    filtered_data = filtered_data[cycle]
     segmented_data = [x for _, x in filtered_data.groupby("protocol", sort=False)]
     plot_data = [
         PlotData(
@@ -155,7 +157,7 @@ class PlotSpec(NamedTuple):
 
 
 PLOTS: Mapping[str, PlotSpec] = {
-    # "activation_log": PlotSpec(("Activation",), "semilog"),
+    "activation_log": PlotSpec(("Activation",), "semilog"),
     "activation_xy": PlotSpec(("Activation",), "time"),
     "precondition": PlotSpec(("Preconditioning",), "xy"),
     "relaxation": PlotSpec(("Relax",), "semilog"),
@@ -172,7 +174,7 @@ def main(file: Path) -> None:
     if not file.exists():
         print(f"File {file} does not exist, skipping...")
         return
-    data = import_df(file)
+    data = import_df(file).unwrap()
     ylim = (data["force"].min() - 25, data["force"].max() + 25)
     for spec in PLOTS.values():
         match make_plot(data, spec.terms, file, spec.mode, ylim=ylim):

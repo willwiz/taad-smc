@@ -42,6 +42,6 @@ def parser_cmdline_args(args: list[str] | None = None) -> ParsedArguments:
     return _parser.parse_args(
         args,
         namespace=ParsedArguments(
-            [], plot=False, log="INFO", overwrite=False, smoothing_window=50, smoothing_repeat=2
+            [], plot=False, log="INFO", overwrite=False, smoothing_window=50, smoothing_repeat=3
         ),
     )

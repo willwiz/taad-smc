@@ -3,17 +3,19 @@
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, TypeIs, get_args, get_origin, get_type_hints
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from pytools.result import Err, Ok
 from taad_smc.tdms.api import import_tdms_data
 
 from ._tools import construct_protocol, validate_protocol
-from .trait import SpecimenInfo, TestProtocol
+from ._validation import JSON_DICT, is_all_test_protocols, is_specimen_info, is_test_protocol
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    from .trait import SpecimenInfo, TestProtocol
 
 __all__ = [
     "construct_protocol",
@@ -21,6 +23,9 @@ __all__ = [
     "import_specimen_info",
     "import_tdms_data",
     "import_test_protocol",
+    "is_all_test_protocols",
+    "is_specimen_info",
+    "is_test_protocol",
     "validate_protocol",
 ]
 
@@ -44,28 +49,28 @@ def import_df(file: Path) -> Ok[pd.DataFrame] | Err:
     return Err(FileExistsError(f"{file} not found"))
 
 
-def _is_dict(dct: object) -> TypeIs[dict[Any, Any]]:
-    return isinstance(dct, dict)
+# def _is_dict(dct: object) -> TypeIs[dict[Any, Any]]:
+#     return isinstance(dct, dict)
 
 
-def _validate_specimen_info(dct: object) -> TypeIs[SpecimenInfo]:
-    if not _is_dict(dct):
-        return False
-    for key, value_type in get_type_hints(SpecimenInfo).items():
-        value = dct.get(key)
-        if value is None:
-            print(f"Missing key: {key}")
-            return False
-        if get_origin(value_type) is Literal:
-            if value not in get_args(value_type):
-                print(f"Invalid value for key: {key}.")
-                print(f"Expected one of {get_args(value_type)}, got {value}")
-                return False
-        elif not isinstance(value, value_type):
-            print(f"Invalid type for key: {key}.")
-            print(f"Expected {value_type}, got {type(value)}")
-            return False
-    return True
+# def _validate_specimen_info(dct: object) -> TypeIs[SpecimenInfo]:
+#     if not _is_dict(dct):
+#         return False
+#     for key, value_type in get_type_hints(SpecimenInfo).items():
+#         value = dct.get(key)
+#         if value is None:
+#             print(f"Missing key: {key}")
+#             return False
+#         if get_origin(value_type) is Literal:
+#             if value not in get_args(value_type):
+#                 print(f"Invalid value for key: {key}.")
+#                 print(f"Expected one of {get_args(value_type)}, got {value}")
+#                 return False
+#         elif not isinstance(value, value_type):
+#             print(f"Invalid type for key: {key}.")
+#             print(f"Expected {value_type}, got {type(value)}")
+#             return False
+#     return True
 
 
 def import_specimen_info(file: Path | str) -> Ok[SpecimenInfo] | Err:
@@ -75,11 +80,11 @@ def import_specimen_info(file: Path | str) -> Ok[SpecimenInfo] | Err:
         msg = f"File {info_file} does not exist."
         return Err(FileExistsError(msg))
     with info_file.open("r") as f:
-        info = json.load(f)
-    if not _validate_specimen_info(info):
-        msg = f"Specimen info in {info_file} is invalid."
-        return Err(ValueError(msg))
-    return Ok(info)
+        info: JSON_DICT = json.load(f)
+    if is_specimen_info(info):
+        return Ok(info)
+    msg = f"Specimen info in {info_file} is invalid."
+    return Err(ValueError(msg))
 
 
 def import_test_protocol(file: Path) -> Ok[Mapping[str, TestProtocol]] | Err:
@@ -87,11 +92,7 @@ def import_test_protocol(file: Path) -> Ok[Mapping[str, TestProtocol]] | Err:
         msg = f"File {file} does not exist."
         return Err(FileExistsError(msg))
     with file.open("r") as f:
-        meta_data: dict[str, TestProtocol] = json.load(f)
-    for test in meta_data.values():
-        match validate_protocol(test):
-            case Err(e):
-                return Err(e)
-            case Ok(None):
-                continue
-    return Ok(meta_data)
+        meta_data = json.load(f)
+    if is_all_test_protocols(meta_data):
+        return Ok(meta_data)
+    return Err(ValueError(f"Test protocol in {file} is invalid."))

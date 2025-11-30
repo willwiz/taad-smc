@@ -1,6 +1,8 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Literal, TypeIs, cast, get_args, get_origin, get_type_hints
+
+from pwlsplit.api import is_segment_dict
 
 from .trait import SpecimenInfo, TestProtocol
 
@@ -59,7 +61,14 @@ def _is_special_protocol_type(val: Mapping[object, object], kind: str) -> bool:
 
 
 def _is_override_protocol_type(val: Mapping[object, object]) -> bool:
-    return True
+    match val.get("segments"):
+        case None:
+            return False
+        case segs:
+            if not isinstance(segs, Sequence):
+                return False
+    segs = cast("Sequence[object]", segs)
+    return all(is_segment_dict(s) for s in segs)
 
 
 def is_test_protocol(val: object) -> TypeIs[TestProtocol]:

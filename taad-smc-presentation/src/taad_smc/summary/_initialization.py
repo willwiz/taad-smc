@@ -1,19 +1,19 @@
-from pathlib import Path
 from pprint import pformat
 from typing import TYPE_CHECKING
 
 from pytools.result import Err, Ok
 
-from .types import PROTOCOL_NAMES, PROTOCOLS, CachableData, SpecimenData
+from ._types import PROTOCOL_NAMES, PROTOCOLS, CachableData, SpecimenData
 
 if TYPE_CHECKING:
     import re
     from collections.abc import Iterable, Mapping
+    from pathlib import Path
 
 
 def _match_directory(folders: Iterable[Path], pattern: re.Pattern[str]) -> Mapping[int, Path]:
     return {
-        int(f.groupdict().get("it", 1)): folder / Path(folder.name).with_suffix(".csv")
+        int(f.groupdict().get("it", 1)): (folder / "filtered").with_suffix(".tsv")
         for folder in folders
         if (f := pattern.match(folder.name))
     }

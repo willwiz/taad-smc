@@ -7,43 +7,49 @@ from matplotlib import pyplot as plt
 from pytools.plotting.api import create_figure, legend_kwargs, style_kwargs, update_figure_setting
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
     from pathlib import Path
 
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
     from pytools.plotting.trait import PlotKwargs
 
-    from .types import PlotData
+    from ._types import PlotData
 
 
-def semilogx[T: np.number](
+def create_ppgrid(**kwargs: Unpack[PlotKwargs]) -> tuple[Figure, Sequence[Sequence[Axes]]]:
+    fig_kwargs: PlotKwargs = {"figsize": (16, 9)}
+    fig, axes = create_figure(nrows=3, ncols=4, **(fig_kwargs | kwargs))
+    update_figure_setting(fig, **kwargs)
+    return fig, axes
+
+
+def save_and_close_fig(fig: Figure, fout: Path, **kwargs: Unpack[PlotKwargs]) -> None:
+    fig.savefig(fout, dpi=kwargs.get("dpi", 300), transparent=kwargs.get("transparent", False))
+    plt.close(fig)
+
+
+def semilogx_on_axis[T: np.number](
     data: Iterable[PlotData[T]],
-    fout: Path,
+    ax: Axes,
     **kwargs: Unpack[PlotKwargs],
 ) -> None:
-    fig, ax = create_figure(**kwargs)
-    update_figure_setting(fig, **kwargs)
     style = style_kwargs(**kwargs)
     for d in data:
         ax.semilogx(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")
     if curve_labels is not None:
-        fig.legend(curve_labels, **legend_kwargs(**kwargs))
-    fig.savefig(fout)
-    plt.close(fig)
+        ax.legend(curve_labels, **legend_kwargs(**kwargs))
 
 
-def plotxy[T: np.number](
+def plotxy_on_axis[T: np.number](
     data: Iterable[PlotData[T]],
-    fout: Path,
+    ax: Axes,
     **kwargs: Unpack[PlotKwargs],
 ) -> None:
-    fig, ax = create_figure(**kwargs)
-    update_figure_setting(fig, **kwargs)
     style = style_kwargs(**kwargs)
     for d in data:
         ax.plot(d.x, d.y, **style)
     curve_labels = kwargs.get("curve_labels")
     if curve_labels is not None:
-        fig.legend(curve_labels, **legend_kwargs(**kwargs))
-    fig.savefig(fout)
-    plt.close(fig)
+        ax.legend(curve_labels, **legend_kwargs(**kwargs))

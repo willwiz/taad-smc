@@ -7,14 +7,15 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from pytools.result import Err, Ok
 
-from ._plotting import plotxy
+from ._plotting import plotxy_on_axis
 from ._tools import get_last_valid
-from .types import PlotData, SpecimenData
+from ._types import PlotData, SpecimenData
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Iterable, Mapping, Sequence
 
     import pandas as pd
+    from matplotlib.axes import Axes
     from pytools.logging.trait import ILogger
 
 
@@ -26,7 +27,7 @@ def reduce_cycling_terms(df: pd.DataFrame, terms: Iterable[str]) -> pd.DataFrame
     return idf[last_cycle]
 
 
-def parse_cycling_data(
+def parse_activated_cycling_data(
     database: SpecimenData,
 ) -> (
     Ok[
@@ -67,6 +68,35 @@ def parse_cycling_data(
     return Ok(filtered_data)
 
 
+def parse_cycling_data(
+    database: SpecimenData,
+) -> (
+    Ok[
+        Mapping[
+            Literal["Fast", "Mid", "Slow"],
+            Mapping[Literal["10", "20", "30"], pd.DataFrame],
+        ]
+    ]
+    | Err
+):
+    match get_last_valid(database, "initial"):
+        case Err(e):
+            return Err(e)
+        case Ok(initial_data):
+            pass
+    if initial_data is None:
+        return Err(LookupError("No initial data found in database."))
+
+    filtered_data: Mapping[
+        Literal["Fast", "Mid", "Slow"],
+        Mapping[Literal["10", "20", "30"], pd.DataFrame],
+    ] = {
+        s: {r: reduce_cycling_terms(initial_data, ("Saw", r, s)) for r in ("10", "20", "30")}
+        for s in ("Fast", "Mid", "Slow")
+    }
+    return Ok(filtered_data)
+
+
 def _create_plot_data_i(
     data: pd.DataFrame,
 ) -> PlotData[np.float64]:
@@ -85,8 +115,10 @@ def _create_plot_data(
     return {k: {s: _create_plot_data_i(df) for s, df in v.items()} for k, v in data.items()}
 
 
-def summarize_cycling_data(database: SpecimenData, *, log: ILogger) -> Ok[None] | Err:
-    match parse_cycling_data(database):
+def summarize_activated_cycling_data(
+    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+) -> Ok[None] | Err:
+    match parse_activated_cycling_data(database):
         case Ok(data):
             if not data:
                 log.info("No cycling-related data found. Skipping ...")
@@ -94,12 +126,52 @@ def summarize_cycling_data(database: SpecimenData, *, log: ILogger) -> Ok[None] 
         case Err(e):
             return Err(e)
     plot_data = _create_plot_data(data)
-    for s, v in plot_data.items():
-        plotxy(
+    for i, (s, v) in enumerate(plot_data.items()):
+        plotxy_on_axis(
             v.values(),
-            fout=database.home / f"cycling_summary_{s}.png",
+            ax=plot_grid[0][i + 1],
+            title=f"Cycling Summary - {s} Rate",
             xlabel="Strain [-]",
             ylabel="Force [mN]",
             curve_labels=list(v.keys()),
         )
+    return Ok(None)
+
+
+def _convert_to_plot_data(
+    data: Iterable[pd.DataFrame],
+) -> Iterable[PlotData[np.float64]]:
+    return [
+        PlotData(
+            x=df[["disp"]].to_numpy(dtype=np.float64).flatten(),
+            y=df[["force"]].to_numpy(dtype=np.float64).flatten(),
+        )
+        for df in data
+    ]
+
+
+def summarize_cycling_data(
+    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+) -> Ok[None] | Err:
+    match parse_cycling_data(database):
+        case Ok(data):
+            if not data:
+                log.info("No cycling-related data found. Skipping ...")
+                return Ok(None)
+        case Err(e):
+            return Err(e)
+    plotxy_on_axis(
+        _convert_to_plot_data(data["Fast"].values()),
+        ax=plot_grid[0][1],
+        title="Cycling Summary - Fast Rate",
+        xlabel="Strain [-]",
+        ylabel="Force [mN]",
+    )
+    plotxy_on_axis(
+        _convert_to_plot_data([data[k]["30"] for k in ("Fast", "Mid", "Slow")]),
+        ax=plot_grid[0][2],
+        title="Cycling Summary - Mid Rate",
+        xlabel="Strain [-]",
+        ylabel="Force [mN]",
+    )
     return Ok(None)

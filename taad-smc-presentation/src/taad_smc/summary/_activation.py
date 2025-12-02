@@ -5,14 +5,15 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from pytools.result import Err, Ok
 
-from ._plotting import semilogx
+from ._plotting import semilogx_on_axis
 from ._tools import get_last_valid
-from .types import PlotData, SpecimenData
+from ._types import PlotData, SpecimenData
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     import pandas as pd
+    from matplotlib.axes import Axes
     from pytools.logging.trait import ILogger
 
 
@@ -61,7 +62,9 @@ def _create_plot_data(
     return {k: _create_plot_data_i(df) for k, df in data.items()}
 
 
-def summarize_activation_data(database: SpecimenData, *, log: ILogger) -> Ok[None] | Err:
+def summarize_activation_data(
+    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+) -> Ok[None] | Err:
     match parse_activation_data(database):
         case Ok(data):
             if not data:
@@ -70,9 +73,9 @@ def summarize_activation_data(database: SpecimenData, *, log: ILogger) -> Ok[Non
         case Err(e):
             return Err(e)
     plot_data = _create_plot_data(data)
-    semilogx(
+    semilogx_on_axis(
         plot_data.values(),
-        fout=database.home / "activation_summary.png",
+        ax=plot_grid[2][0],
         title="Activation Summary",
         xlabel="Time [s]",
         ylabel="Force [mN]",

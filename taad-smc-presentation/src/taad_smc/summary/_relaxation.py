@@ -7,14 +7,15 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from pytools.result import Err, Ok
 
-from ._plotting import semilogx
+from ._plotting import semilogx_on_axis
 from ._tools import get_last_valid
-from .types import PlotData, SpecimenData
+from ._types import PlotData, SpecimenData
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
+    from collections.abc import Iterable, Mapping, Sequence
 
     import pandas as pd
+    from matplotlib.axes import Axes
     from pytools.logging.trait import ILogger
 
 
@@ -85,7 +86,9 @@ def _create_plot_data(
     return {k: {s: _create_plot_data_i(df) for s, df in v.items()} for k, v in data.items()}
 
 
-def summarize_relaxation_data(database: SpecimenData, *, log: ILogger) -> Ok[None] | Err:
+def summarize_relaxation_data(
+    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+) -> Ok[None] | Err:
     match parse_relaxation_data(database):
         case Ok(data):
             if not data:
@@ -94,10 +97,11 @@ def summarize_relaxation_data(database: SpecimenData, *, log: ILogger) -> Ok[Non
         case Err(e):
             return Err(e)
     plot_data = _create_plot_data(data)
-    for s, v in plot_data.items():
-        semilogx(
+    for i, (s, v) in enumerate(plot_data.items()):
+        semilogx_on_axis(
             v.values(),
-            fout=database.home / f"relaxation_summary_{s}.png",
+            ax=plot_grid[1][i + 1],
+            title=f"Relaxation Summary - {s} Rate",
             xlabel="Time [s]",
             ylabel="Force [mN]",
             curve_labels=list(v.keys()),

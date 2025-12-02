@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 
 def main(file: Path, *, fout: str | None, opt: FilterKwargs, log: ILogger) -> None:
     log.info(f"Trying out filter for file: {file}")
+    if fout and (file.parent / fout).exists():
+        log.info(f"Output file {fout} already exists and will be overwritten.")
+        return
     df = import_df(file).unwrap()
     split_points = find_split_points(df, ["protocol", "cycle", "mode"])
     ff = filter_curves(df, cols=["force", "disp"], index=split_points, **opt).unwrap()
@@ -25,7 +28,7 @@ def main(file: Path, *, fout: str | None, opt: FilterKwargs, log: ILogger) -> No
     plot_loop(df, ff, fout=figname).unwrap()
     if fout:
         log.info(f"Exported filtered data to: {fout}")
-        ff.to_csv(file.parent / fout)
+        ff.to_csv(file.parent / fout, sep="\t", index=False)
 
 
 if __name__ == "__main__":

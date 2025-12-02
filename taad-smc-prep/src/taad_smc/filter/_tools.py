@@ -61,7 +61,7 @@ def make_semilogplot(
     kwargs["alpha"] = [0.3] * len(df_data) + [1.0] * len(ff_data)
     semilogx(
         plot_data,
-        file.parent / f"{file.stem}_{'_'.join(terms)}_plot.{file.suffix}",
+        (file.parent / f"{file.stem}_{'_'.join(terms)}_plot").with_suffix(file.suffix),
         **kwargs,
     )
     return Ok(None)
@@ -91,7 +91,7 @@ def make_plotxy(
     kwargs["alpha"] = [0.3] * len(df_data) + [1.0] * len(ff_data)
     plotxy(
         plot_data,
-        file.parent / f"{file.stem}_{'_'.join(terms)}_plot.{file.suffix}",
+        (file.parent / f"{file.stem}_{'_'.join(terms)}_plot").with_suffix(file.suffix),
         **kwargs,
     )
     return Ok(None)
@@ -130,7 +130,7 @@ def make_plottime(
     kwargs["alpha"] = [0.3] * len(df_data) + [1.0] * len(ff_data)
     plotxy(
         plot_data,
-        file.parent / f"{file.stem}_{'_'.join(terms)}_plot.{file.suffix}",
+        (file.parent / f"{file.stem}_{'_'.join(terms)}_plot").with_suffix(file.suffix),
         **kwargs,
     )
     return Ok(None)

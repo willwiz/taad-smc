@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
     from pytools.plotting.trait import PlotKwargs
 
-    from .struct import PlotData
+    from ._types import PlotData
 
 
 def semilogx[T: np.number](

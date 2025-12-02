@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from pwlsplit.trait import PreppedData, Segmentation
 
-    from ._trait import PROTOCOL_MAP
+    from ._types import PROTOCOL_MAP
 
 
 def segmentation_loop[F: np.floating, I: np.integer](

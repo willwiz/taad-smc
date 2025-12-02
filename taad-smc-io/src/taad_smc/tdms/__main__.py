@@ -22,6 +22,7 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("file", type=str, nargs="+", help="Path to the TDMS file to read.")
 parser.add_argument("--plot", action="store_true", help="Plot the raw data too.")
+parser.add_argument("--overwrite", action="store_true", help="Overwrite existing .raw files.")
 parser.add_argument(
     "--log",
     type=str,
@@ -33,6 +34,7 @@ parser.add_argument(
 
 class OptionKwargs(TypedDict):
     plot: bool
+    overwrite: bool
     log: LOG_LEVEL | None
 
 
@@ -45,13 +47,17 @@ def parse_args(args: list[str] | None = None) -> Arguments:
     files = [v for val in parser.parse_args(args).file for v in Path().glob(val)]
     return {
         "file": files,
-        "opts": {"plot": parser.parse_args(args).plot, "log": parser.parse_args(args).log},
+        "opts": {
+            "plot": parser.parse_args(args).plot,
+            "log": parser.parse_args(args).log,
+            "overwrite": parser.parse_args(args).overwrite,
+        },
     }
 
 
 def main(file: str | Path, **kwargs: Unpack[OptionKwargs]) -> None:
     file = Path(file)
-    if file.with_suffix(".raw").exists():
+    if file.with_suffix(".raw").exists() and not kwargs.get("overwrite"):
         return
     log_level = kwargs.get("log")
     log = (

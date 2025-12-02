@@ -12,12 +12,12 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from pytools.logging.trait import ILogger
-    from taad_smc.io.trait import SpecimenInfo, TestProtocol
+    from taad_smc.io.types import SpecimenInfo, TestProtocol
     from taad_smc.tdms.struct import TDMSData
 
     from pwlsplit.trait import Segmentation
 
-    from ._trait import FileNames
+    from ._types import FileNames
 
 
 def _format_dict(dct: object, indent: int = 2) -> str:

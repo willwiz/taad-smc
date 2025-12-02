@@ -12,10 +12,10 @@ if TYPE_CHECKING:
     import pandas as pd
     from pytools.arrays import A1
 
-    from .types import FILTER_METHODS, FilterKwargs
+    from ._types import FILTER_METHODS, FilterKwargs
 
 
-class FilterCallable(Protocol):
+class _FilterCallable(Protocol):
     def __call__[F: np.number](self, arr: A1[F], window: float) -> A1[F]: ...
 
 
@@ -27,7 +27,7 @@ def _median_filter[F: np.number](arr: A1[F], window: float) -> A1[F]:
     return median_filter(arr, size=int(window))
 
 
-FILTERS: Mapping[FILTER_METHODS, FilterCallable] = {
+FILTERS: Mapping[FILTER_METHODS, _FilterCallable] = {
     "gaussian": _gaussian_filter,
     "median": _median_filter,
 }

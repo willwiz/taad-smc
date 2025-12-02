@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from pytools.logging.trait import ILogger
 
-    from .types import FilterKwargs
+    from ._types import FilterKwargs
 
 
 def main(file: Path, *, fout: str | None, opt: FilterKwargs, log: ILogger) -> None:

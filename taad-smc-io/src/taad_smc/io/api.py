@@ -1,6 +1,7 @@
 # Copyright (c) 2025 Will Zhang
 # pyright: reportUnknownMemberType=false
 
+import dataclasses as dc
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,16 +10,22 @@ import pandas as pd
 from pytools.result import Err, Ok
 from taad_smc.tdms.api import import_tdms_data
 
+from ._search import check_for_files, find_data_subdirectories
+
+# from ._specimen_info import import_specimen_info
 from ._tools import construct_protocol, validate_protocol
 from ._validation import JSON_DICT, is_all_test_protocols, is_specimen_info, is_test_protocol
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from .trait import SpecimenInfo, TestProtocol
+    from ._types import PROTOCOL_NAMES, SpecimenInfo, TestProtocol
 
 __all__ = [
+    "CachableData",
+    "check_for_files",
     "construct_protocol",
+    "find_data_subdirectories",
     "import_df",
     "import_specimen_info",
     "import_tdms_data",
@@ -96,3 +103,37 @@ def import_test_protocol(file: Path) -> Ok[Mapping[str, TestProtocol]] | Err:
     if is_all_test_protocols(meta_data):
         return Ok(meta_data)
     return Err(ValueError(f"Test protocol in {file} is invalid."))
+
+
+class CachableData:
+    __slots__ = ("_data", "_file")
+    _file: Path
+    _data: pd.DataFrame | None
+
+    def __init__(self, file: Path) -> None:
+        self._file = file
+        self._data = None
+
+    @property
+    def file(self) -> Path:
+        return self._file
+
+    def v(self) -> Ok[pd.DataFrame] | Err:
+        if self._data is not None:
+            return Ok(self._data)
+        match import_df(self._file):
+            case Err(e):
+                msg = f"Failed to import data from {self._file}: {e}"
+                return Err(FileExistsError(msg))
+            case Ok(df):
+                self._data = df
+                return Ok(df)
+
+
+@dc.dataclass(slots=True)
+class SpecimenData:
+    home: Path
+    _data: dict[PROTOCOL_NAMES, Mapping[int, CachableData] | None]
+
+    def __getitem__(self, name: PROTOCOL_NAMES) -> Mapping[int, CachableData] | None:
+        return self._data.get(name)

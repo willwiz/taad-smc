@@ -1,10 +1,11 @@
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, get_args
 
-from .types import PROTOCOL_NAMES, SpecimenData
+from taad_smc.io.types import PROTOCOL_NAMES
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
+    from taad_smc.io.api import SpecimenData
 
 
 def log_search_results(data: SpecimenData, *, log: ILogger) -> None:

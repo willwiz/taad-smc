@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, get_args
 
 from pytools.logging.trait import LOG_LEVEL
 
-from .types import FILTER_METHODS, FilterKwargs
+from ._types import FILTER_METHODS, FilterKwargs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

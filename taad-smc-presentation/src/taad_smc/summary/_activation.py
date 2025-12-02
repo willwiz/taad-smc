@@ -7,7 +7,7 @@ from pytools.result import Err, Ok
 
 from ._plotting import semilogx_on_axis
 from ._tools import get_last_valid
-from ._types import PlotData, SpecimenData
+from ._types import PlotData
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     import pandas as pd
     from matplotlib.axes import Axes
     from pytools.logging.trait import ILogger
+    from taad_smc.io.api import SpecimenData
 
 
 def parse_activation_data(

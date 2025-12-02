@@ -12,8 +12,8 @@ import numpy as np
 from pytools.result import Err, Ok
 from taad_smc.io.api import import_df
 
-from .semilog import plotxy, semilogx
-from .struct import PlotData
+from ._plotting import plotxy, semilogx
+from ._types import PlotData
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

@@ -4,7 +4,7 @@ from typing import Literal, TypeIs, cast, get_args, get_origin, get_type_hints
 
 from pwlsplit.api import is_segment_dict
 
-from .trait import SpecimenInfo, TestProtocol
+from ._types import SpecimenInfo, TestProtocol
 
 type JSON_VALUE = None | str | int | float | bool | "JSON_ARRAY" | "JSON_DICT"
 type JSON_ARRAY = list[JSON_VALUE]

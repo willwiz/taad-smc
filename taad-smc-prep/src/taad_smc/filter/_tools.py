@@ -9,7 +9,7 @@ from pytools.plotting.trait import PlotKwargs
 from pytools.result import Err, Ok
 
 from ._plotting import plotxy, semilogx
-from .types import PlotData
+from ._types import PlotData
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

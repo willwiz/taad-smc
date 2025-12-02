@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pytools.logging.api import BLogger
+from pytools.path import expand_as_path
 from taad_smc.summary._plotting import create_ppgrid, save_and_close_fig
 
 from ._activation import summarize_activation_data
@@ -28,5 +29,5 @@ def main(folder: Path, *, log: ILogger) -> None:
 if __name__ == "__main__":
     args = parse_arguments()
     log = BLogger(args.log)
-    for folder in args.folders:
+    for folder in expand_as_path(args.folders):
         main(Path(folder) or Path(), log=log)

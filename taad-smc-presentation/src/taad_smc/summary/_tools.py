@@ -4,8 +4,8 @@ from pytools.result import Err, Ok
 
 if TYPE_CHECKING:
     import pandas as pd
-
-    from .types import PROTOCOL_NAMES, SpecimenData
+    from taad_smc.io.api import SpecimenData
+    from taad_smc.io.types import PROTOCOL_NAMES
 
 
 def get_last_valid(database: SpecimenData, key: PROTOCOL_NAMES) -> Ok[pd.DataFrame | None] | Err:

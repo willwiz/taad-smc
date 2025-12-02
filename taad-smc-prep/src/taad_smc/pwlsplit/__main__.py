@@ -22,7 +22,7 @@ from ._tools import (
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
 
-    from ._trait import SegmentOptions
+    from ._types import SegmentOptions
 
 
 def main(file: Path, opts: SegmentOptions, *, log: ILogger) -> None:

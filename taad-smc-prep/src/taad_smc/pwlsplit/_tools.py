@@ -9,14 +9,14 @@ from taad_smc.io.api import construct_protocol
 
 from pwlsplit.trait import PreppedData, Segmentation, SegmentDict
 
-from ._trait import PROTOCOL_MAP, FileNames, SegmentOptions
+from ._types import PROTOCOL_MAP, FileNames, SegmentOptions
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
     from pathlib import Path
 
     from pytools.arrays import A1
-    from taad_smc.io.trait import SpecimenInfo, TestProtocol
+    from taad_smc.io.types import SpecimenInfo, TestProtocol
     from taad_smc.tdms.struct import TDMSData
 
     from ._argparse import ParsedArguments

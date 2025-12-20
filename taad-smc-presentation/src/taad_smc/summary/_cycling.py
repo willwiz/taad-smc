@@ -2,12 +2,14 @@
 
 from functools import reduce
 from operator import iand
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Unpack
 
 import numpy as np
+from pytools.plotting.trait import PlotKwargs
 from pytools.result import Err, Ok
+from taad_smc.summary._relaxation import convert_plot_data_time
 
-from ._plotting import plotxy_on_axis
+from ._plotting import plotxy_on_axis, semilogx_on_axis
 from ._tools import get_last_valid
 from ._types import PlotData
 
@@ -92,9 +94,35 @@ def parse_cycling_data(
         Literal["Fast", "Mid", "Slow"],
         Mapping[Literal["10", "20", "30"], pd.DataFrame],
     ] = {
-        s: {r: reduce_cycling_terms(initial_data, ("Saw", r, s)) for r in ("10", "20", "30")}
+        s: {r: reduce_cycling_terms(initial_data, ("Saw", r, s)) for r in ("30", "20", "10")}
         for s in ("Fast", "Mid", "Slow")
     }
+    return Ok(filtered_data)
+
+
+def parse_relaxation_data(
+    database: SpecimenData,
+) -> (
+    Ok[
+        Mapping[
+            Literal["Fast", "Mid", "Slow"],
+            pd.DataFrame,
+        ]
+    ]
+    | Err
+):
+    match get_last_valid(database, "initial"):
+        case Err(e):
+            return Err(e)
+        case Ok(initial_data):
+            pass
+    if initial_data is None:
+        return Err(LookupError("No initial data found in database."))
+
+    filtered_data: Mapping[
+        Literal["Fast", "Mid", "Slow"],
+        pd.DataFrame,
+    ] = {s: reduce_cycling_terms(initial_data, ("Relax", s)) for s in ("Fast", "Mid", "Slow")}
     return Ok(filtered_data)
 
 
@@ -117,7 +145,11 @@ def _create_plot_data(
 
 
 def summarize_activated_cycling_data(
-    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+    plot_grid: Sequence[Sequence[Axes]],
+    database: SpecimenData,
+    *,
+    log: ILogger,
+    **kwargs: Unpack[PlotKwargs],
 ) -> Ok[None] | Err:
     match parse_activated_cycling_data(database):
         case Ok(data):
@@ -127,14 +159,27 @@ def summarize_activated_cycling_data(
         case Err(e):
             return Err(e)
     plot_data = _create_plot_data(data)
+    lin_sty = {"Fast": "-", "Mid": "--", "Slow": ":"}
+    activation_colors = {
+        "initial": "k",
+        "activated": "r",
+        "deactivated": "b",
+    }
     for i, (s, v) in enumerate(plot_data.items()):
+        plot_kwargs = (
+            PlotKwargs(
+                title=f"Cycling w/ activation - {s}",
+                xlabel="Strain [-]",
+                ylabel="Force [mN]",
+                color=[activation_colors[k] for k in v],
+                linestyle=lin_sty[s],
+            )
+            | kwargs
+        )
         plotxy_on_axis(
             v.values(),
-            ax=plot_grid[0][i + 1],
-            title=f"Cycling Summary - {s} Rate",
-            xlabel="Strain [-]",
-            ylabel="Force [mN]",
-            curve_labels=list(v.keys()),
+            ax=plot_grid[1][i + 1],
+            **plot_kwargs,
         )
     return Ok(None)
 
@@ -152,7 +197,11 @@ def _convert_to_plot_data(
 
 
 def summarize_cycling_data(
-    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+    plot_grid: Sequence[Sequence[Axes]],
+    database: SpecimenData,
+    *,
+    log: ILogger,
+    **kwargs: Unpack[PlotKwargs],
 ) -> Ok[None] | Err:
     match parse_cycling_data(database):
         case Ok(data):
@@ -161,18 +210,57 @@ def summarize_cycling_data(
                 return Ok(None)
         case Err(e):
             return Err(e)
+    strain_colors = {"30": "k", "20": "g", "10": "orange"}
+    rate_sty = {"Fast": "-", "Mid": "--", "Slow": ":"}
+    plot_kwargs = (
+        PlotKwargs(
+            title="Cycling - Strain Level",
+            xlabel="Strain [-]",
+            ylabel="Force [mN]",
+            color=[strain_colors[k] for k in data["Fast"]],
+        )
+        | kwargs
+    )
     plotxy_on_axis(
         _convert_to_plot_data(data["Fast"].values()),
         ax=plot_grid[0][1],
-        title="Cycling Summary - Fast Rate",
-        xlabel="Strain [-]",
-        ylabel="Force [mN]",
+        **plot_kwargs,
+    )
+    plot_kwargs = (
+        PlotKwargs(
+            title="Cycling - Rate Dependence",
+            xlabel="Strain [-]",
+            ylabel="Force [mN]",
+            color="k",
+            linestyle=[rate_sty[k] for k in ("Fast", "Mid", "Slow")],
+        )
+        | kwargs
     )
     plotxy_on_axis(
         _convert_to_plot_data([data[k]["30"] for k in ("Fast", "Mid", "Slow")]),
         ax=plot_grid[0][2],
-        title="Cycling Summary - Mid Rate",
-        xlabel="Strain [-]",
-        ylabel="Force [mN]",
+        **plot_kwargs,
+    )
+    match parse_relaxation_data(database):
+        case Ok(data):
+            if not data:
+                log.info("No relaxation-related data found. Skipping ...")
+                return Ok(None)
+        case Err(e):
+            return Err(e)
+    plot_kwargs = (
+        PlotKwargs(
+            title="Relaxation",
+            xlabel="Time [s]",
+            ylabel="Force [mN]",
+            color="k",
+            linestyle=["-", "--", ":"],
+        )
+        | kwargs
+    )
+    semilogx_on_axis(
+        (convert_plot_data_time(data[k]) for k in ("Fast", "Mid", "Slow")),
+        ax=plot_grid[0][3],
+        **plot_kwargs,
     )
     return Ok(None)

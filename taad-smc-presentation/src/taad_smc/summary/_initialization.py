@@ -15,7 +15,7 @@ def import_datafiles(
             pass
         case Err(e):
             return Err(e)
-    match check_for_files(folders):
+    match check_for_files(folders, pattern="filtered.tsv"):
         case Ok(datafiles):
             data = SpecimenData(
                 home,

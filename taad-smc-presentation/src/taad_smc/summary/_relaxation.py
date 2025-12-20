@@ -2,9 +2,10 @@
 
 from functools import reduce
 from operator import iand
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Unpack
 
 import numpy as np
+from pytools.plotting.trait import PlotKwargs
 from pytools.result import Err, Ok
 
 from ._plotting import semilogx_on_axis
@@ -67,11 +68,11 @@ def parse_relaxation_data(
     return Ok(filtered_data)
 
 
-def _create_plot_data_i(
+def convert_plot_data_time(
     data: pd.DataFrame,
 ) -> PlotData[np.float64]:
     time = data[["time"]].to_numpy(dtype=np.float64).flatten()
-    time = time - time[0]
+    time = time - time.min()
     return PlotData(
         x=time,
         y=data[["force"]].to_numpy(dtype=np.float64).flatten(),
@@ -84,11 +85,15 @@ def _create_plot_data(
         Mapping[Literal["activated", "deactivated", "initial"], pd.DataFrame],
     ],
 ) -> Mapping[str, Mapping[str, PlotData[np.float64]]]:
-    return {k: {s: _create_plot_data_i(df) for s, df in v.items()} for k, v in data.items()}
+    return {k: {s: convert_plot_data_time(df) for s, df in v.items()} for k, v in data.items()}
 
 
 def summarize_relaxation_data(
-    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+    plot_grid: Sequence[Sequence[Axes]],
+    database: SpecimenData,
+    *,
+    log: ILogger,
+    **kwargs: Unpack[PlotKwargs],
 ) -> Ok[None] | Err:
     match parse_relaxation_data(database):
         case Ok(data):
@@ -97,14 +102,23 @@ def summarize_relaxation_data(
                 return Ok(None)
         case Err(e):
             return Err(e)
+    activation_colors = {
+        "initial": "k",
+        "activated": "r",
+        "deactivated": "b",
+    }
+    lin_sty = {"Fast": "-", "Mid": "--", "Slow": ":"}
     plot_data = _create_plot_data(data)
     for i, (s, v) in enumerate(plot_data.items()):
-        semilogx_on_axis(
-            v.values(),
-            ax=plot_grid[1][i + 1],
-            title=f"Relaxation Summary - {s} Rate",
-            xlabel="Time [s]",
-            ylabel="Force [mN]",
-            curve_labels=list(v.keys()),
+        plot_kwargs = (
+            PlotKwargs(
+                title=f"Relaxation w/ activation - {s}",
+                xlabel="Time [s]",
+                ylabel="Force [mN]",
+                color=[activation_colors[k] for k in v],
+                linestyle=lin_sty[s],
+            )
+            | kwargs
         )
+        semilogx_on_axis(v.values(), ax=plot_grid[2][i + 1], **plot_kwargs)
     return Ok(None)

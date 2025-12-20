@@ -43,7 +43,7 @@ def find_data_subdirectories(home: Path) -> Ok[Mapping[PROTOCOL_NAMES, Mapping[i
     """
     folders = list(home.iterdir())
     files: Mapping[PROTOCOL_NAMES, Mapping[int, Path]] = {
-        k: _match_directory(folders, v) for k, v in PROTOCOLS.items()
+        k: f for k, v in PROTOCOLS.items() if (f := _match_directory(folders, v))
     }
     if not files:
         msg = f"No protocol subdirectories found in {home}"

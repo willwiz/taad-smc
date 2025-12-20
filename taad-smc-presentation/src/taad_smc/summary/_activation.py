@@ -1,8 +1,9 @@
 """Summarize activation data."""
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Unpack
 
 import numpy as np
+from pytools.plotting.trait import PlotKwargs
 from pytools.result import Err, Ok
 
 from ._plotting import semilogx_on_axis
@@ -64,7 +65,11 @@ def _create_plot_data(
 
 
 def summarize_activation_data(
-    plot_grid: Sequence[Sequence[Axes]], database: SpecimenData, *, log: ILogger
+    plot_grid: Sequence[Sequence[Axes]],
+    database: SpecimenData,
+    *,
+    log: ILogger,
+    **kwargs: Unpack[PlotKwargs],
 ) -> Ok[None] | Err:
     match parse_activation_data(database):
         case Ok(data):
@@ -73,13 +78,24 @@ def summarize_activation_data(
                 return Ok(None)
         case Err(e):
             return Err(e)
+    activation_colors = {
+        "initial": "k",
+        "activation": "r",
+        "deactivation": "b",
+    }
     plot_data = _create_plot_data(data)
+    plot_kwargs = (
+        PlotKwargs(
+            title="Activation Summary",
+            xlabel="Time [s]",
+            ylabel="Force [mN]",
+            color=[activation_colors[k] for k in plot_data],
+        )
+        | kwargs
+    )
     semilogx_on_axis(
         plot_data.values(),
         ax=plot_grid[2][0],
-        title="Activation Summary",
-        xlabel="Time [s]",
-        ylabel="Force [mN]",
-        curve_labels=list(plot_data.keys()),
+        **plot_kwargs,
     )
     return Ok(None)

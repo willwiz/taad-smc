@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 def main(file: Path, *, fout: str | None, opt: FilterKwargs, log: ILogger) -> None:
     log.info(f"Trying out filter for file: {file}")
     if fout and (file.parent / fout).exists():
-        log.info(f"Output file {fout} already exists and will be overwritten.")
+        log.info(f"Output file {fout} already exists skipping...")
         return
     df = import_df(file).unwrap()
     split_points = find_split_points(df, ["protocol", "cycle", "mode"])

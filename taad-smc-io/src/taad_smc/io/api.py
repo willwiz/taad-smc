@@ -17,7 +17,7 @@ from ._tools import construct_protocol, validate_protocol
 from ._validation import JSON_DICT, is_all_test_protocols, is_specimen_info, is_test_protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Generator, Mapping
 
     from ._types import PROTOCOL_NAMES, SpecimenInfo, TestProtocol
 
@@ -52,7 +52,8 @@ def import_df(file: Path) -> Ok[pd.DataFrame] | Err:
 
     """
     if file.exists():
-        return Ok(pd.read_csv(file))
+        sep = "\t" if file.suffix == ".tsv" else ","
+        return Ok(pd.read_csv(file, sep=sep))
     return Err(FileExistsError(f"{file} not found"))
 
 
@@ -137,3 +138,9 @@ class SpecimenData:
 
     def __getitem__(self, name: PROTOCOL_NAMES) -> Mapping[int, CachableData] | None:
         return self._data.get(name)
+
+    def __iter__(self) -> Generator[PROTOCOL_NAMES]:
+        yield from self._data.keys()
+
+    def keys(self) -> list[PROTOCOL_NAMES]:
+        return list(self._data.keys())
